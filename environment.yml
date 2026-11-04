@@ -1,0 +1,40 @@
+# Ambiente Conda del progetto eo_water
+# Crea l'ambiente con:   conda env create -f environment.yml
+# Aggiornalo con:        conda env update -f environment.yml --prune
+name: eo_water
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  # --- calcolo numerico e tabelle ---
+  - numpy
+  - pandas
+  - scipy
+  - statsmodels
+  - scikit-learn
+  # --- dati multidimensionali (NetCDF, cubi di dati) ---
+  - xarray
+  - dask
+  - netcdf4
+  - h5netcdf
+  # --- raster e vettoriali ---
+  - rasterio
+  - rioxarray
+  - geopandas
+  - shapely
+  - pyproj
+  # --- grafici e mappe ---
+  - matplotlib
+  - cartopy
+  # --- accesso ai dati ---
+  - pystac-client      # cataloghi STAC (Copernicus Data Space)
+  - odc-stac           # da STAC a xarray
+  - openeo             # elaborazione cloud su Copernicus Data Space
+  - cdsapi             # Climate Data Store (ERA5-Land)
+  - earthaccess        # NASA Earthdata (Landsat, MODIS)
+  # --- strumenti di lavoro (VS Code usa ipykernel) ---
+  - jupyterlab
+  - ipykernel
+  - pyyaml
+  - tqdm
+  - pytest

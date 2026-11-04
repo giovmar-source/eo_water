@@ -1,0 +1,32 @@
+# --- Dati: mai nel repository (troppo pesanti, alcuni con licenze specifiche) ---
+data/
+*.tif
+*.tiff
+*.nc
+*.h5
+*.zip
+*.SAFE/
+
+# --- Credenziali e configurazioni personali ---
+.env
+.cdsapirc
+_netrc
+.netrc
+*credentials*
+
+# --- Output locali e temporanei ---
+outputs/tmp/
+check_env_output.txt
+
+# --- Python ---
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.pytest_cache/
+
+# --- Editor e sistema ---
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+.DS_Store
