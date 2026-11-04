@@ -16,6 +16,7 @@ _netrc
 
 # --- Output locali e temporanei ---
 outputs/tmp/
+outputs/logs/
 check_env_output.txt
 
 # --- Python ---

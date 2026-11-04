@@ -1,0 +1,33 @@
+# Configurazione dello Step 2 - primo confronto Sentinel-3 (termico) vs Sentinel-2 (ottico)
+# Tutti i parametri stanno qui, non nel codice: per cambiare area o date si modifica solo questo file.
+
+aoi:
+  name: po_delta_test
+  description: "Delta del Po, area di Porto Tolle (circa 16 x 15 km)"
+  # Riquadro in gradi (WGS84): ovest, sud, est, nord
+  west: 12.25
+  south: 44.88
+  east: 12.45
+  north: 45.02
+
+period:
+  # Finestra estiva della siccita' 2022: cerchiamo la data meno nuvolosa
+  start: "2022-07-10"
+  end: "2022-07-25"      # escluso (convenzione openEO)
+
+output_crs: 32633         # UTM zona 33N: proiezione metrica adatta al Delta del Po
+
+sentinel2:
+  collection: SENTINEL2_L2A
+  bands: [B04, B08, SCL]  # rosso, vicino infrarosso, mappa di classificazione della scena
+  resolution_m: 20        # 20 m: risoluzione obiettivo del progetto (come ESA Sen-ET)
+  max_cloud_cover: 60     # scarta in partenza le scene quasi tutte nuvolose (%)
+
+sentinel3:
+  collection: SENTINEL3_SLSTR_L2_LST
+  bands: [LST, confidence_in]
+  resolution_m: 1000      # risoluzione nativa del termico SLSTR, circa 1 km
+
+paths:
+  raw: data/raw/step02
+  figures: outputs/figures
