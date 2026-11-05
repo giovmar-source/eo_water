@@ -1,0 +1,89 @@
+# Configurazione Fase 1 - sharpening del termico Sentinel-3 con Sentinel-2, validazione con Landsat
+
+# Area di ADDESTRAMENTO: grande, per avere abbastanza pixel da 1 km (circa 40 x 40 km, Delta del Po e Polesine)
+training_aoi:
+  name: po_delta_training
+  west: 12.05
+  south: 44.78
+  east: 12.55
+  north: 45.14
+
+# Area di ANALISI: dove produciamo le mappe a 20 m (la stessa dello Step 2)
+analysis_aoi:
+  name: po_delta_porto_tolle
+  west: 12.25
+  south: 44.88
+  east: 12.45
+  north: 45.02
+
+# Periodo in cui cercare le date con passaggio comune (estate della siccita' 2022)
+search_period:
+  start: "2022-06-01"
+  end: "2022-09-01"
+
+# Soglie per la ricerca delle date
+date_search:
+  max_cloud_s2: 20        # copertura nuvolosa massima della scena Sentinel-2 (%)
+  max_cloud_landsat: 30   # copertura nuvolosa massima della scena Landsat (%)
+  s3_day_hours_utc: [8, 12]  # solo passaggi diurni di Sentinel-3
+
+catalogs:
+  cdse_stac: https://stac.dataspace.copernicus.eu/v1
+  s2_collection: sentinel-2-l2a
+  s3_collection: sentinel-3-sl-2-lst-ntc
+  landsat_stac: https://planetarycomputer.microsoft.com/api/stac/v1
+  landsat_collection: landsat-c2-l2
+  landsat_platforms: [landsat-8, landsat-9]
+
+# Giorno di riferimento scelto con p1_01_find_dates.py
+reference_date: "2022-07-19"
+
+download:
+  output_crs: 32633         # UTM 33N, uguale per tutti i dati
+  s2_collection: SENTINEL2_L2A
+  # Tutte le bande utili a 20 m: visibile, red-edge, NIR, SWIR + classificazione della scena
+  s2_bands: [B02, B03, B04, B05, B06, B07, B08, B8A, B11, B12, SCL]
+  s2_resolution_m: 20
+  s3_collection: SENTINEL3_SLSTR_L2_LST
+  s3_bands: [LST, confidence_in]
+  s3_resolution_m: 1000
+  landsat_platform: landsat-9
+  # File Landsat da prendere: temperatura superficiale e qualita' del pixel
+  landsat_assets: [lwir11, qa_pixel]
+
+# Preparazione della tabella di addestramento (predittori a 1 km -> LST Sentinel-3)
+training:
+  s3_time_utc: "09:58"          # passaggio Sentinel-3 da usare (quello simultaneo a Landsat 9)
+  # Classi SCL di Sentinel-2 considerate "terra limpida": 4 vegetazione, 5 suolo nudo/non vegetato
+  s2_valid_scl: [4, 5]
+  # Un pixel da 1 km entra nell'addestramento solo se almeno questa frazione dei suoi
+  # pixel da 20 m e' terra limpida (compromesso tra quantita' e purezza dei campioni)
+  min_valid_fraction: 0.9
+  # Soglie da provare nell'analisi di sensibilita' (solo conteggio dei pixel)
+  sensitivity_fractions: [0.5, 0.7, 0.8, 0.9, 1.0]
+  # Risposta spaziale (PSF) di Sentinel-3: ogni pixel "vede" un'area piu' ampia di 1 km.
+  # Stimata confrontando S3 con Landsat sfocato: massima correlazione a sigma ~500 m.
+  # Si applica la stessa sfocatura gaussiana a Sentinel-2 prima di aggregarlo. 0 = nessuna.
+  psf_sigma_m: 500
+
+# Confronto dei modelli (predittori a 1 km -> LST)
+models:
+  predictors: [B02, B03, B04, B05, B06, B07, B08, B8A, B11, B12, NDVI, NDMI]
+  cv_block_km: 5          # lato dei blocchi per la validazione incrociata spaziale
+  cv_folds: 5             # numero di gruppi (fold)
+  random_seed: 42         # rende i risultati ripetibili
+  rf_trees: 300           # alberi della foresta casuale
+  rf_min_samples_leaf: 5  # ogni "foglia" deve contenere almeno 5 pixel: limita l'overfitting
+
+# Sharpening a 20 m e validazione con Landsat
+sharpening:
+  models: ["Foresta casuale", "Lineare tutte"]  # il primo e' il modello principale (figure)
+  validation_resolution_m: 100   # Landsat ha termico nativo a 100 m: confrontiamo a quella scala
+  min_valid_fraction: 0.9        # cella da 100 m usata solo se >= 90% dei pixel fini e' valido
+  predict_chunk: 500000          # pixel previsti per blocco (limita l'uso di memoria)
+
+paths:
+  tables: outputs/tables
+  figures: outputs/figures
+  raw: data/raw/p1_20220719
+  processed: data/processed/p1_20220719

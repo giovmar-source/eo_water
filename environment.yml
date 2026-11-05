@@ -32,6 +32,7 @@ dependencies:
   - openeo             # elaborazione cloud su Copernicus Data Space
   - cdsapi             # Climate Data Store (ERA5-Land)
   - earthaccess        # NASA Earthdata (Landsat, MODIS)
+  - planetary-computer # firma dei link ai dati Microsoft Planetary Computer (Landsat)
   # --- strumenti di lavoro (VS Code usa ipykernel) ---
   - jupyterlab
   - ipykernel
