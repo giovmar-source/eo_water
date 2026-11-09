@@ -45,6 +45,8 @@ import pandas as pd
 import rioxarray  # noqa: F401
 import xarray as xr
 import yaml
+
+from config_utils import load_config
 from rasterio.enums import Resampling
 from scipy.stats import spearmanr
 
@@ -87,7 +89,7 @@ def contextual_cwsi(T, lai, mask, bins, p_wet, p_dry):
 
 
 def main():
-    cfg_all = yaml.safe_load(CONFIG_FILE.read_text(encoding="utf-8"))
+    cfg_all = load_config()
     cfg, scfg = cfg_all["tseb"], cfg_all["stress"]
     proc = PROJECT_ROOT / cfg_all["paths"]["processed"]
     anc = PROJECT_ROOT / cfg_all["paths"]["aux"]
@@ -187,9 +189,9 @@ def main():
     ax.set_title("Superficie stressata per coltura (TSEB; rho = accordo con il contestuale)")
     fig.suptitle(f"Stress idrico - Delta del Po - {cfg_all['reference_date']}", fontsize=14)
     fig.savefig(fig_dir / "p2_07_water_stress.png", dpi=150)
-    log("Figura: outputs/figures/p2_07_water_stress.png")
+    log(f"Figura: {cfg_all['paths']['figures']}/p2_07_water_stress.png")
 
-    (PROJECT_ROOT / "outputs" / "p2_07_summary.txt").write_text("\n".join(LINES) + "\n",
+    (PROJECT_ROOT / cfg_all["paths"]["summaries"] / "p2_07_summary.txt").write_text("\n".join(LINES) + "\n",
                                                                  encoding="utf-8")
 
 

@@ -21,15 +21,19 @@ search_period:
   start: "2022-06-01"
   end: "2022-09-01"
 
-# Soglie per la ricerca delle date
+# Ricerca dei giorni con S2 + S3 + Landsat sereni sull'area (p1_01)
 date_search:
-  max_cloud_s2: 20        # copertura nuvolosa massima della scena Sentinel-2 (%)
-  max_cloud_landsat: 30   # copertura nuvolosa massima della scena Landsat (%)
-  s3_day_hours_utc: [8, 12]  # solo passaggi diurni di Sentinel-3
+  years: [2019, 2020, 2021, 2022, 2023, 2024, 2025]
+  months: [4, 9]                 # da aprile a settembre (stagione irrigua)
+  max_cloud_s2_scene: 60         # soglie LARGHE sulla scena intera (S2 110 km, Landsat 185 km)...
+  max_cloud_landsat_scene: 60
+  min_clear_fraction: 0.85       # ...poi controllo vero: >= 85% di terraferma limpida SULL'AREA
+  s3_day_hours_utc: [8, 12]      # solo passaggi diurni di Sentinel-3
 
 catalogs:
   cdse_stac: https://stac.dataspace.copernicus.eu/v1
   s2_collection: sentinel-2-l2a
+  s2_collection_pc: sentinel-2-l2a   # stessa collezione su Planetary Computer (maschera SCL in COG)
   s3_collection: sentinel-3-sl-2-lst-ntc
   landsat_stac: https://planetarycomputer.microsoft.com/api/stac/v1
   landsat_collection: landsat-c2-l2
@@ -47,13 +51,15 @@ download:
   s3_collection: SENTINEL3_SLSTR_L2_LST
   s3_bands: [LST, confidence_in]
   s3_resolution_m: 1000
-  landsat_platform: landsat-9
+  landsat_platforms: [landsat-8, landsat-9]   # Landsat usato per validare, se passa quel giorno
   # File Landsat da prendere: temperatura superficiale e qualita' del pixel
   landsat_assets: [lwir11, qa_pixel]
 
 # Preparazione della tabella di addestramento (predittori a 1 km -> LST Sentinel-3)
 training:
-  s3_time_utc: "09:58"          # passaggio Sentinel-3 da usare (quello simultaneo a Landsat 9)
+  # Passaggio Sentinel-3 da usare: "auto" = il diurno (8-12 UTC) con piu' pixel limpidi.
+  # Per il 19/07/2022 e' fissato alle 09:58 (simultaneo a Landsat 9) nella sezione "dates".
+  s3_time_utc: auto
   # Classi SCL di Sentinel-2 considerate "terra limpida": 4 vegetazione, 5 suolo nudo/non vegetato
   s2_valid_scl: [4, 5]
   # Un pixel da 1 km entra nell'addestramento solo se almeno questa frazione dei suoi
@@ -113,7 +119,7 @@ tseb:
   lst_file: lst_sharpened_foresta_casuale.tif   # LST a 20 m dallo sharpening
   lai_file: lai_snap.tif                        # LAI principale (SNAP)
   fapar_file: fapar_snap.tif                    # per la frazione verde f_g = FAPAR / FIPAR
-  overpass_utc: "09:58"
+  overpass_utc: auto            # uguale al passaggio Sentinel-3 scelto (impostato da config_utils)
   # Altezze di misura del meteo ERA5-Land
   z_u_m: 10.0              # vento a 10 m
   z_T_m: 2.0               # temperatura a 2 m
@@ -137,7 +143,7 @@ tseb:
   lambda_J_kg: 2450000.0     # calore di vaporizzazione dell'acqua
   vegetated_lai_min: 0.5   # pixel "vegetati" per le statistiche di stress
   # Correzione della temperatura dell'aria ERA5 (K). 0 finche' non c'e' una stazione a supporto.
-  ta_offset_K: 2.0          # ERA5 troppo fresca di 2,1 K alla stazione ARPAE GIRALDA (Step 2c-bis)
+  ta_offset_K: auto          # 'auto' = dal confronto con la stazione (p2_05); oppure un numero
   # Sensibilita' calcolata automaticamente su un campione di pixel (in piu' rispetto a ta_offset_K)
   sens_ta_offsets_K: [-1, 0, 1]
   # Mappa colturale EUCROPMAP 2022 a 20 m (da p2_06)
@@ -173,9 +179,18 @@ stress:
   p_dry: 98               # percentile caldo (campi senz'acqua)
   stress_threshold: 0.3   # CWSI oltre cui un pixel e' considerato stressato
 
+# Validazione con ECOSTRESS (NASA, ISS, 70 m) - Step 3
+ecostress:
+  start: "2022-06-15"
+  end: "2022-08-31"
+  hours_utc: [8, 12]        # passaggi a meta' mattina, confrontabili con Sentinel-3 (~10 UTC)
+  min_coverage: 0.5         # almeno meta' dell'area di analisi dentro il tassello
+  max_cloud_pct: 10         # nuvole sulla terraferma dell'area
+  compare_resolution_m: 500 # scala del confronto: ECOSTRESS e' meno nitido dei 70 m nominali
+
 # Stazioni a terra per verificare il meteo ERA5-Land
 stations:
-  file: data/ancillary/stations/arpae_giralda_20220719.csv   # ARPAE-SIMC Dext3r, CC BY 4.0
+  file: data/ancillary/stations/arpae_giralda_{date}.csv   # ARPAE-SIMC Dext3r, CC BY 4.0
 
 # Mappa colturale europea 2022 (JRC EUCROPMAP, 10 m, CC BY 4.0)
 cropmap:
@@ -207,9 +222,18 @@ cropmap:
     700: Acqua
     800: Zone umide
 
+# Eccezioni valide per una sola data (si sovrappongono alle impostazioni sopra)
+dates:
+  "2022-07-19":
+    training:
+      s3_time_utc: "09:58"      # passaggio simultaneo a Landsat 9
+
+# Percorsi: {date} viene sostituito con la data elaborata (es. 20220811)
 paths:
-  tables: outputs/tables
-  figures: outputs/figures
-  raw: data/raw/p1_20220719
-  processed: data/processed/p1_20220719
+  raw: data/raw/p1_{date}
+  processed: data/processed/p1_{date}
+  tables: outputs/{date}/tables
+  figures: outputs/{date}/figures
+  summaries: outputs/{date}
+  tables_common: outputs/tables      # risultati che non dipendono dalla data
   aux: data/ancillary

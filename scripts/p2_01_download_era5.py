@@ -40,6 +40,8 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 import yaml
+
+from config_utils import load_config
 from scipy.ndimage import distance_transform_edt
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -118,7 +120,7 @@ def fill_from_nearest_land(ds):
 
 
 def main():
-    cfg = yaml.safe_load(open(CONFIG_FILE, encoding="utf-8"))
+    cfg = load_config()
     out_dir = PROJECT_ROOT / cfg["paths"]["raw"]
     out_dir.mkdir(parents=True, exist_ok=True)
     out_file = out_dir / "era5land.nc"
@@ -182,7 +184,7 @@ def main():
     log(f"\nTemperatura dell'aria alle {h} UTC sulle celle di terra: "
         f"da {float(t10.min()):.1f} °C (costa) a {float(t10.max()):.1f} °C (entroterra)")
 
-    (PROJECT_ROOT / "outputs" / "p2_01_summary.txt").write_text("\n".join(LINES), encoding="utf-8")
+    (PROJECT_ROOT / cfg["paths"]["summaries"] / "p2_01_summary.txt").write_text("\n".join(LINES), encoding="utf-8")
 
 
 if __name__ == "__main__":

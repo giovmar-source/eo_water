@@ -1,0 +1,19 @@
+Angoli medi: zenit solare 32.0°, azimut solare 153.1°, zenit di vista 5.4°, azimut di vista 270.4°
+Pixel di terra limpida con tutti gli input: 2520919
+LAI   : mediana 0.63, 5°-95° percentile 0.23-4.08, fuori dominio di addestramento 0.5%
+FCOVER: mediana 0.27, 5°-95° percentile 0.02-0.86, fuori dominio di addestramento 0.5%
+FAPAR : mediana 0.33, 5°-95° percentile 0.01-0.88, fuori dominio di addestramento 0.5%
+
+BIOPAR LAI: mediana 0.71
+
+LAI mediano per classe di NDVI (SNAP 8 bande vs BIOPAR 3 bande):
+              pixel  LAI_SNAP  LAI_BIOPAR  differenza
+classe NDVI                                          
+(-1.0, 0.3]  891809      0.29        0.13        0.15
+(0.3, 0.5]   449929      0.52        0.58       -0.05
+(0.5, 0.7]   416084      1.09        1.27       -0.19
+(0.7, 0.8]   235805      1.82        2.17       -0.34
+(0.8, 0.85]  146806      2.40        2.93       -0.52
+(0.85, 1.0]  298619      3.69        4.54       -0.85
+
+Figura: outputs/20220811/figures/p2_03_biophysical.png

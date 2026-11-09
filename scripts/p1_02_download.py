@@ -27,6 +27,8 @@ import pandas as pd
 import planetary_computer
 import rioxarray
 import yaml
+
+from config_utils import load_config
 from pystac_client import Client
 from pystac_client.stac_api_io import StacApiIO
 from urllib3.util.retry import Retry
@@ -85,7 +87,8 @@ def download_sentinel(cfg, out_dir):
     check_bands(connection, d["s2_collection"], d["s2_bands"])
     check_bands(connection, d["s3_collection"], d["s3_bands"])
 
-    # Sentinel-3: scarichiamo tutti i passaggi del giorno; la scelta (09:58 UTC) si fa dopo, in locale
+    # Sentinel-3: scarichiamo tutti i passaggi del giorno; la scelta del passaggio si fa dopo,
+    # in locale (config_utils.pick_s3_pass, oppure l'ora fissata nel config per quella data)
     s3 = connection.load_collection(d["s3_collection"], spatial_extent=extent,
                                     temporal_extent=temporal, bands=d["s3_bands"])
     s3 = s3.resample_spatial(resolution=d["s3_resolution_m"], projection=d["output_crs"], method="near")
@@ -133,10 +136,14 @@ def download_landsat(cfg, out_dir):
         collections=[cat["landsat_collection"]],
         bbox=bbox,
         datetime=f"{day}T00:00:00Z/{day}T23:59:59Z",
-        query={"platform": {"eq": d["landsat_platform"]}},
+        query={"platform": {"in": d["landsat_platforms"]}},
     ).items())
     if not items:
-        sys.exit(f"Nessuna scena {d['landsat_platform']} il {day}.")
+        # Landsat passa ogni 8 giorni (8 e 9 insieme): spesso non c'e'. Non e' un errore:
+        # la validazione si fara' con ECOSTRESS, se disponibile (vedi p1_05).
+        print(f"Nessuna scena Landsat ({', '.join(d['landsat_platforms'])}) il {day}: "
+              "salto Landsat.")
+        return
 
     # Se piu' scene toccano l'area, prendiamo quella che la copre di piu'
     item = max(items, key=lambda it: overlap_fraction(it.bbox, bbox))
@@ -176,7 +183,7 @@ def download_landsat(cfg, out_dir):
 
 
 def main():
-    cfg = yaml.safe_load(open(CONFIG_FILE, encoding="utf-8"))
+    cfg = load_config()
     out_dir = PROJECT_ROOT / cfg["paths"]["raw"]
     out_dir.mkdir(parents=True, exist_ok=True)
     print(f"Giorno di riferimento: {cfg['reference_date']}")

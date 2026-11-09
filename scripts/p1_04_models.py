@@ -30,6 +30,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import yaml
+
+from config_utils import load_config
 from sklearn.dummy import DummyRegressor
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.inspection import permutation_importance
@@ -88,7 +90,7 @@ def scores(y, pred):
 
 
 def main():
-    cfg = yaml.safe_load(open(CONFIG_FILE, encoding="utf-8"))
+    cfg = load_config()
     m = cfg["models"]
     table = pd.read_csv(PROJECT_ROOT / cfg["paths"]["processed"] / "training_table.csv")
     X = table[m["predictors"]]
@@ -160,7 +162,7 @@ def main():
     plt.close(fig)
     log(f"\nFigura: {cfg['paths']['figures']}/p1_04_models.png")
     log(f"Tabella: {cfg['paths']['tables']}/p1_04_model_scores.csv")
-    (PROJECT_ROOT / "outputs" / "p1_04_summary.txt").write_text("\n".join(LINES), encoding="utf-8")
+    (PROJECT_ROOT / cfg["paths"]["summaries"] / "p1_04_summary.txt").write_text("\n".join(LINES), encoding="utf-8")
 
 
 if __name__ == "__main__":

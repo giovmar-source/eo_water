@@ -32,6 +32,8 @@ import pandas as pd
 import rioxarray  # noqa: F401  (attiva .rio su xarray)
 import xarray as xr
 import yaml
+
+from config_utils import load_config
 from rasterio.enums import Resampling
 from scipy.ndimage import gaussian_filter
 
@@ -131,7 +133,7 @@ def aggregate_to(fine, coarse):
 
 
 def main():
-    cfg = yaml.safe_load(open(CONFIG_FILE, encoding="utf-8"))
+    cfg = load_config()
     tr = cfg["training"]
     crs = cfg["download"]["output_crs"]
     raw = PROJECT_ROOT / cfg["paths"]["raw"]
@@ -212,7 +214,7 @@ def main():
     plt.close(fig)
     log(f"Figura salvata: {cfg['paths']['figures']}/p1_03_training_overview.png")
 
-    (PROJECT_ROOT / "outputs" / "p1_03_summary.txt").write_text("\n".join(LINES), encoding="utf-8")
+    (PROJECT_ROOT / cfg["paths"]["summaries"] / "p1_03_summary.txt").write_text("\n".join(LINES), encoding="utf-8")
 
 
 if __name__ == "__main__":

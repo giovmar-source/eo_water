@@ -34,3 +34,6 @@ desktop.ini
 
 # --- Note personali (non pubblicare) ---
 GUIDA_PERSONALE.md
+
+# --- File creati da librerie (earthaccess/OPeNDAP) ---
+.dodsrc

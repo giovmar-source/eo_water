@@ -31,6 +31,8 @@ import pandas as pd
 import xarray as xr
 import yaml
 
+from config_utils import load_config
+
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 CONFIG_FILE = PROJECT_ROOT / "config" / "phase1_sharpening.yaml"
 LINES = []
@@ -64,13 +66,17 @@ def read_dext3r(path):
 
 
 def main():
-    cfg_all = yaml.safe_load(CONFIG_FILE.read_text(encoding="utf-8"))
+    cfg_all = load_config()
     st_cfg = cfg_all["stations"]
     proc = PROJECT_ROOT / cfg_all["paths"]["processed"]
     fig_dir = PROJECT_ROOT / cfg_all["paths"]["figures"]
     tab_dir = PROJECT_ROOT / cfg_all["paths"]["tables"]
 
-    series, meta = read_dext3r(PROJECT_ROOT / st_cfg["file"])
+    st_file = PROJECT_ROOT / st_cfg["file"]
+    if not st_file.exists():
+        raise SystemExit(f"Manca il file della stazione {st_cfg['file']}: scaricalo da Dext3r "
+                         "(temperatura media oraria, giorno prima/dopo compresi).")
+    series, meta = read_dext3r(st_file)
     lon = float(meta["Longitudine (Gradi Centesimali)"])
     lat = float(meta["Latitudine (Gradi Centesimali)"])
     log(f"Stazione {meta['Nome della stazione']} ({meta['Comune']}), lon {lon}, lat {lat}")
@@ -97,8 +103,15 @@ def main():
     log(f"\nAl passaggio ({t_pass:%H:%M} UTC): stazione {win.T_staz_C.mean():.2f} C, "
         f"ERA5 {win.T_era5_C.mean():.2f} C -> ERA5 troppo fresca di {bias:.2f} K")
     log(f"Ore 07-15 UTC: differenza media {day.mean():+.2f} K (min {day.min():+.2f}, max {day.max():+.2f})")
-    log(f"Correzione suggerita: tseb.ta_offset_K = {round(bias * 2) / 2:+.1f} "
+    offset = round(bias * 2) / 2
+    log(f"Correzione per TSEB: {offset:+.1f} K "
         "(arrotondata a 0,5 K; una sola stazione -> da trattare come ipotesi)")
+    # Salvata per questa data: p2_04 la legge se nel config ta_offset_K e' "auto"
+    (PROJECT_ROOT / cfg_all["paths"]["summaries"] / "p2_05_ta_offset.yaml").write_text(
+        yaml.safe_dump({"ta_offset_K": float(offset), "bias_misurato_K": round(float(bias), 2),
+                        "stazione": meta["Nome della stazione"],
+                        "ora_passaggio_utc": cfg_all["tseb"]["overpass_utc"]},
+                       allow_unicode=True), encoding="utf-8")
 
     fig, ax = plt.subplots(figsize=(9, 4.5), constrained_layout=True)
     x = df.index + pd.Timedelta(minutes=30)             # centro dell'ora
@@ -110,9 +123,9 @@ def main():
     ax.legend()
     ax.grid(alpha=0.3)
     fig.savefig(fig_dir / "p2_05_station_vs_era5.png", dpi=150)
-    log(f"Figura: outputs/figures/p2_05_station_vs_era5.png")
+    log(f"Figura: {cfg_all['paths']['figures']}/p2_05_station_vs_era5.png")
 
-    (PROJECT_ROOT / "outputs" / "p2_05_summary.txt").write_text("\n".join(LINES) + "\n",
+    (PROJECT_ROOT / cfg_all["paths"]["summaries"] / "p2_05_summary.txt").write_text("\n".join(LINES) + "\n",
                                                                  encoding="utf-8")
 
 

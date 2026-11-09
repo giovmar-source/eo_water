@@ -27,6 +27,8 @@ import openeo
 import pandas as pd
 import yaml
 
+from config_utils import load_config
+
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 CONFIG_FILE = PROJECT_ROOT / "config" / "phase1_sharpening.yaml"
 OPENEO_URL = "openeo.dataspace.copernicus.eu"
@@ -69,7 +71,7 @@ def run_job(cube, out_file, title):
 
 
 def main():
-    cfg = yaml.safe_load(open(CONFIG_FILE, encoding="utf-8"))
+    cfg = load_config()
     bio, d = cfg["biophysical"], cfg["download"]
     aoi = cfg["training_aoi"]
     extent = {k: aoi[k] for k in ("west", "south", "east", "north")}

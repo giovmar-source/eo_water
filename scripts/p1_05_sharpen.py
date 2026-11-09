@@ -1,5 +1,5 @@
 """
-p1_05_sharpen.py - Sharpening della LST Sentinel-3 (1 km) a 20 m e validazione con Landsat 9.
+p1_05_sharpen.py - Sharpening della LST Sentinel-3 (1 km) a 20 m e validazione (Landsat o ECOSTRESS).
 
 Passaggi:
   1. Addestra i modelli sulla tabella a 1 km (predittori Sentinel-2 sfocati con la PSF).
@@ -8,7 +8,8 @@ Passaggi:
      e la confronta con la LST misurata da Sentinel-3. La differenza (residuo) viene
      interpolata in modo morbido a 20 m e sommata: cosi' la media su ogni chilometro
      torna a coincidere con la misura del satellite (conservazione dell'energia osservata).
-  4. VALIDAZIONE con Landsat 9 (termico misurato a 100 m), alla scala di 100 m:
+  4. VALIDAZIONE con Landsat (termico a 100 m) o, se quel giorno non passa, con ECOSTRESS
+     (70 m, scaricato con p3_01); senza nessuno dei due si fa solo lo sharpening. Scala 100 m:
        - confronto con la LST Sentinel-3 semplicemente interpolata (nessuno sharpening):
          e' il riferimento da battere;
        - metriche assolute (bias, RMSE) e "di forma" (correlazione, RMSE senza bias,
@@ -36,6 +37,8 @@ import pandas as pd
 import rioxarray
 import xarray as xr
 import yaml
+
+from config_utils import load_config
 from rasterio.enums import Resampling
 
 from p1_03_training_table import (REFLECTANCE_BANDS, aggregate_to, as_raster,
@@ -108,6 +111,45 @@ def load_landsat_kelvin(raw):
     return kelvin
 
 
+
+def load_ecostress_kelvin(cfg):
+    """
+    LST ECOSTRESS (70 m, Kelvin) dello stesso giorno, se scaricata con p3_01.
+    Si prende il passaggio piu' vicino all'ora di Sentinel-3; nuvole e acqua a NaN.
+    """
+    root = PROJECT_ROOT / "data" / "raw" / "ecostress"
+    day = cfg["reference_date"].replace("-", "")
+    folders = sorted(root.glob(f"{day}T*")) if root.exists() else []
+    if not folders:
+        return None
+    t_s3 = pd.Timestamp(f"{cfg['reference_date']} {cfg['training']['s3_time_utc']}")
+    folder = min(folders, key=lambda f: abs(pd.Timestamp(f.name) - t_s3))
+    lst_file = sorted(folder.glob("*_LST.tif"))[0]
+    tile = lst_file.name.split("_")[0]
+
+    def read(name):
+        with rioxarray.open_rasterio(folder / f"{tile}_{name}.tif", masked=True) as src:
+            return src.squeeze("band", drop=True).load()
+    lst, cloud, water = read("LST"), read("cloud"), read("water")
+    kelvin = lst.where((cloud != 1) & (water != 1))
+    kelvin = kelvin.rio.write_crs(lst.rio.crs).rio.write_nodata(np.nan, encoded=False)
+    log(f"ECOSTRESS: {folder.name} UTC (tassello {tile}), pixel validi {float(kelvin.notnull().mean()):.0%}")
+    return kelvin
+
+
+def load_reference(cfg, raw):
+    """
+    Temperatura ad alta risoluzione per la validazione: Landsat se passa quel giorno,
+    altrimenti ECOSTRESS, altrimenti nessuna (si fa solo lo sharpening).
+    """
+    if (raw / "landsat_metadata.json").exists():
+        return load_landsat_kelvin(raw), "Landsat"
+    eco = load_ecostress_kelvin(cfg)
+    if eco is not None:
+        return eco, "ECOSTRESS"
+    log("Nessun riferimento ad alta risoluzione (ne' Landsat ne' ECOSTRESS): solo sharpening.")
+    return None, None
+
 def to_grid(da, grid):
     """Media sulla griglia di validazione + frazione di pixel validi in ogni cella."""
     da = da.rio.write_nodata(np.nan, encoded=False)
@@ -138,7 +180,7 @@ def within_km_std(values100, grid100, lst1km):
 
 
 def main():
-    cfg = yaml.safe_load(open(CONFIG_FILE, encoding="utf-8"))
+    cfg = load_config()
     tr, sh, m = cfg["training"], cfg["sharpening"], cfg["models"]
     crs = cfg["download"]["output_crs"]
     pixel_m = cfg["download"]["s2_resolution_m"]
@@ -151,12 +193,13 @@ def main():
     lst = load_sentinel3(raw / "s3_lst.nc", tr["s3_time_utc"], crs)
     table = pd.read_csv(proc / "training_table.csv")
     X, y = table[m["predictors"]], table["LST_K"]
-    landsat = load_landsat_kelvin(raw)
+    landsat, ref_name = load_reference(cfg, raw)
 
     # --- Griglia di validazione a 100 m, allineata a Sentinel-2 ---
     grid100 = as_raster(s2["B04"], crs).rio.reproject(
         f"EPSG:{crs}", resolution=sh["validation_resolution_m"], resampling=Resampling.average, nodata=np.nan)
-    land100, land_frac = to_grid(landsat, grid100)
+    if landsat is not None:
+        land100, land_frac = to_grid(landsat, grid100)
 
     # Riferimento da battere: Sentinel-3 interpolato (bilineare) senza sharpening
     s3_interp = lst.rio.reproject_match(grid100, resampling=Resampling.bilinear, nodata=np.nan)
@@ -175,6 +218,8 @@ def main():
         maps[name] = (as_raster(pred20, crs), sharp20)
         sharp20.rio.to_raster(proc / f"lst_sharpened_{name.replace(' ', '_').lower()}.tif")
 
+        if landsat is None:
+            continue
         for label, fine in [(f"{name} (senza correzione)", as_raster(pred20, crs)),
                             (f"{name} (con correzione)", sharp20)]:
             est100, est_frac = to_grid(fine, grid100)
@@ -184,6 +229,11 @@ def main():
             if label.endswith("(con correzione)"):
                 maps[name] += (est100, mask)
 
+    if landsat is None:
+        (PROJECT_ROOT / cfg["paths"]["summaries"] / "p1_05_summary.txt").write_text(
+            "\n".join(LINES), encoding="utf-8")
+        return
+
     # Riferimento senza sharpening, sulle stesse celle del primo modello
     mask = maps[sh["models"][0]][3]
     base = {"metodo": "Sentinel-3 interpolato (nessuno sharpening)",
@@ -191,7 +241,7 @@ def main():
     results.insert(0, base)
 
     res = pd.DataFrame(results)
-    log("\nValidazione con Landsat 9 a 100 m (stesse celle per tutti i metodi):")
+    log(f"\nValidazione con {ref_name} a 100 m (stesse celle per tutti i metodi):")
     with pd.option_context("display.width", 160):
         log(res.round(3).to_string(index=False))
 
@@ -199,7 +249,7 @@ def main():
     log("\nVariabilita' dentro ogni pixel da 1 km (deviazione std dei valori a 100 m, mediana):")
     common = mask.values
     ref_std = within_km_std(np.where(common, land100.values, np.nan), grid100, lst)
-    log(f"  Landsat (vera):            {np.nanmedian(ref_std):.2f} K")
+    log(f"  {ref_name + ' (vera):':26s}{np.nanmedian(ref_std):.2f} K")
     for name in sh["models"]:
         est100 = maps[name][2]
         est_std = within_km_std(np.where(common, est100.values, np.nan), grid100, lst)
@@ -225,7 +275,7 @@ def main():
     panels = [
         ("Sentinel-3 misurata, ~1 km", crop(lst)),
         (f"Sharpening 20 m ({best}, con correzione)", crop(maps[best][1])),
-        ("Landsat 9 (riferimento), 30 m", crop(land_utm)),
+        (f"{ref_name} (riferimento)", crop(land_utm)),
         ("Sentinel-2 NDMI, 20 m", crop(s2["NDMI"])),
     ]
     vals = np.concatenate([np.ravel(p[1].values - 273.15) for p in panels[:3]])
@@ -242,7 +292,7 @@ def main():
         ax.set_title(title)
         ax.ticklabel_format(style="plain")
         ax.tick_params(axis="x", labelrotation=30)
-    fig.suptitle(f"Delta del Po, {cfg['reference_date']} ~09:58 UTC - area di analisi")
+    fig.suptitle(f"Delta del Po, {cfg['reference_date']} ~{cfg['training']['s3_time_utc']} UTC - area di analisi")
     fig.savefig(fig_dir / "p1_05_sharpening_maps.png", dpi=150)
     plt.close(fig)
 
@@ -256,7 +306,7 @@ def main():
         lims = [np.nanpercentile(ref, 0.5), np.nanpercentile(ref, 99.5)]
         ax.plot(lims, lims, "w--", lw=1)
         ax.set_xlim(lims); ax.set_ylim(lims)
-        ax.set_xlabel("Landsat 9 a 100 m (°C)")
+        ax.set_xlabel(f"{ref_name} a 100 m (°C)")
         ax.set_ylabel(f"{label} a 100 m (°C)")
         ax.set_title(f"{label}\nr {row.r:.2f}, RMSE {row.RMSE_K:.2f} K, senza bias {row.RMSE_senza_bias_K:.2f} K")
     fig.savefig(fig_dir / "p1_05_validation_scatter.png", dpi=150)
@@ -264,7 +314,7 @@ def main():
 
     log(f"\nMappe: {cfg['paths']['figures']}/p1_05_sharpening_maps.png")
     log(f"Confronto: {cfg['paths']['figures']}/p1_05_validation_scatter.png")
-    (PROJECT_ROOT / "outputs" / "p1_05_summary.txt").write_text("\n".join(LINES), encoding="utf-8")
+    (PROJECT_ROOT / cfg["paths"]["summaries"] / "p1_05_summary.txt").write_text("\n".join(LINES), encoding="utf-8")
 
 
 if __name__ == "__main__":

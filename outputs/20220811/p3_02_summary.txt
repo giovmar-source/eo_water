@@ -1,0 +1,11 @@
+ECOSTRESS 20220811T0912 UTC (tassello 32TQQ) contro la nostra catena (Sentinel-3 10:01 UTC)
+
+Confronto (bias = nostro - ECOSTRESS):
+variabile  risoluzione_m     n      r    rho   bias  RMSE  media_nostra  media_ECOSTRESS
+      LST            100 17939  0.576  0.590  3.508 4.753       310.938          307.430
+       ET            100 17557  0.607  0.616 -0.803 1.231         1.754            2.557
+   stress            100 12261 -0.052 -0.136 -0.227 0.395         0.236            0.463
+      LST            500   612  0.685  0.701  3.059 3.783       311.162          308.102
+       ET            500   612  0.608  0.590 -0.803 1.074         1.669            2.472
+   stress            500   591  0.078  0.021 -0.296 0.400         0.272            0.568
+Figura: outputs/20220811/figures/p3_02_ecostress_comparison.png

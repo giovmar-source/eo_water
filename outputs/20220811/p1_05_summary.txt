@@ -1,0 +1,25 @@
+ECOSTRESS: 20220811T0912 UTC (tassello 32TQQ), pixel validi 74%
+
+=== Foresta casuale ===
+Previsione a 20 m: 2520009 pixel
+Residui a 1 km: media +0.09 K, deviazione std 2.41 K
+
+=== Lineare tutte ===
+Previsione a 20 m: 2520009 pixel
+Residui a 1 km: media -0.60 K, deviazione std 2.35 K
+
+Validazione con ECOSTRESS a 100 m (stesse celle per tutti i metodi):
+                                     metodo     n  bias_K  RMSE_K  RMSE_senza_bias_K     r
+Sentinel-3 interpolato (nessuno sharpening) 17235   3.305   4.388              2.887 0.596
+         Foresta casuale (senza correzione) 17235   2.898   4.598              3.571 0.385
+           Foresta casuale (con correzione) 17235   3.436   4.712              3.225 0.546
+           Lineare tutte (senza correzione) 17235   3.803   6.256              4.968 0.323
+             Lineare tutte (con correzione) 17235   3.526   5.902              4.733 0.419
+
+Variabilita' dentro ogni pixel da 1 km (deviazione std dei valori a 100 m, mediana):
+  ECOSTRESS (vera):         1.48 K
+  Foresta casuale           2.34 K  (rapporto ricostruita/vera 158%)
+  Lineare tutte             4.11 K  (rapporto ricostruita/vera 277%)
+
+Mappe: outputs/20220811/figures/p1_05_sharpening_maps.png
+Confronto: outputs/20220811/figures/p1_05_validation_scatter.png

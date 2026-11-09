@@ -32,6 +32,8 @@ import pandas as pd
 import rioxarray
 import xarray as xr
 import yaml
+
+from config_utils import load_config
 from rasterio.enums import Resampling
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -39,7 +41,7 @@ CONFIG_FILE = PROJECT_ROOT / "config" / "phase1_sharpening.yaml"
 
 
 def main():
-    cfg_all = yaml.safe_load(CONFIG_FILE.read_text(encoding="utf-8"))
+    cfg_all = load_config()
     cm = cfg_all["cropmap"]
     t, a = cfg_all["training_aoi"], cfg_all["analysis_aoi"]
     aux = PROJECT_ROOT / cfg_all["paths"]["aux"]

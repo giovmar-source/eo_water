@@ -32,6 +32,12 @@ Repository: https://github.com/giovmar-source/eo_water (privato per ora). Cartel
 | 1 | 2c-quater – Frazione verde f_g = FAPAR/FIPAR (stoppie: traspirazione da 82 a 4 W/m², ET frumento 2,1 → 1,6 mm/g) | fatto | 2026-11-06 |
 | 1 | 2d – Stress idrico: CWSI TSEB (1 − LE_C/LE_C,pot) e CWSI contestuale per classi di LAI; accordo sul rango 0,84 per LAI ≥ 2, 0,43–0,58 per vegetazione rada | fatto (1 data) | 2026-11-06 |
 
+| 1 | 3a – Ricerca passaggi ECOSTRESS estate 2022 (8–12 UTC): 7 sereni sul tassello 32TQQ; scelto 11/08/2022 09:12 UTC (S2 stesso giorno, 8% nuvole) | fatto | 2026-11-09 |
+
+| 1 | 3b – Pipeline parametrica (--date), config_utils, run_chain, output per data; test di non regressione sul 19/07 superato | fatto | 2026-11-09 |
+
+| 1 | 3c – Catena sull'11/08/2022 + confronto ECOSTRESS a 500 m: LST r 0,69 (bias +3,1 K, ECOSTRESS 49 min prima), ET r 0,61 (bias −0,8 mm/g), stress nessun accordo (definizioni diverse) | fatto | 2026-11-09 |
+
 ## Decisioni
 
 | Data | Decisione | Motivazione |
@@ -77,15 +83,21 @@ Repository: https://github.com/giovmar-source/eo_water (privato per ora). Cartel
 | 2026-11-06 | Frazione verde f_g = FAPAR / FIPAR (FIPAR dal LAI con Beer, k = 0,5/cos zenit) | Separa stoppie (0,02) da colture verdi anche rade (mais giovane 1,09); una soglia sull'NDVI le confonderebbe |
 | 2026-11-06 | Stress da due indici indipendenti (TSEB assoluto, contestuale relativo senza Ta) | La mappa è credibile dove concordano sul rango; il contestuale non dà livelli assoluti |
 | 2026-11-06 | Stress calcolato solo per LAI ≥ 0,5 e f_g ≥ 0,5, esclusi acqua ed edificato | Sotto è suolo nudo o stoppie |
+| 2026-11-09 | Validazione con ECOSTRESS su una nuova data (11/08/2022), non sul 19/07 | Il 19/07 ECOSTRESS passa solo di notte e al tramonto; l'11/08 passa alle 09:12 UTC con S2 sereno lo stesso giorno |
+| 2026-11-09 | Data come parametro, percorsi {date}, S3 'auto', Ta 'auto' da p2_05, validazione Landsat/ECOSTRESS | Serve per validazione, serie temporale e articolo; una sola fonte di verità |
+| 2026-11-09 | Output spostati in outputs/<data>/ | Più date senza sovrascrivere |
+| 2026-11-09 | Confronto con ECOSTRESS a 500 m, non a 70–100 m | Scene ECOSTRESS 2022 sfocate e con strisce; le anomalie sotto il km concordano (r 0,56 a 300 m), ma la validazione a livello di campo resta Landsat |
 
 ## File prodotti
 
 - `environment.yml`, `check_env.py`, `.gitignore`, `PROJECT_LOG.md`, `.vscode/settings.json` (locale)
 - `config/step02_first_look.yaml`, `scripts/step02_download.py`, `scripts/step02_first_look.py`
-- `config/phase1_sharpening.yaml`, `scripts/p1_01_find_dates.py`, `outputs/tables/p1_coincident_dates.csv`, `scripts/p1_02_download.py`, `scripts/p1_03_training_table.py`, `scripts/p1_04_models.py`, `scripts/p1_05_sharpen.py`, `scripts/p2_01_download_era5.py`, `scripts/p2_02_download_biophys_inputs.py`, `scripts/p2_03_biophysical.py`, `scripts/p2_04_tseb.py`, `scripts/p2_05_station_check.py`, `scripts/p2_06_download_cropmap.py`, `scripts/p2_07_water_stress.py`, `outputs/tables/p2_07_stress_by_crop.csv`, `outputs/tables/p2_07_stress_by_lai.csv`, `outputs/tables/p2_04_tseb_by_crop.csv`, `data/ancillary/stations/arpae_giralda_20220719.csv` (escluso da Git), `outputs/tables/p2_04_tseb_by_lai.csv`, `outputs/tables/p2_04_sensitivity.csv`
+- `config/phase1_sharpening.yaml`, `scripts/p1_01_find_dates.py`, `outputs/tables/p1_coincident_dates.csv`, `scripts/p1_02_download.py`, `scripts/p1_03_training_table.py`, `scripts/p1_04_models.py`, `scripts/p1_05_sharpen.py`, `scripts/p2_01_download_era5.py`, `scripts/p2_02_download_biophys_inputs.py`, `scripts/p2_03_biophysical.py`, `scripts/p2_04_tseb.py`, `scripts/p2_05_station_check.py`, `scripts/p2_06_download_cropmap.py`, `scripts/p2_07_water_stress.py`, `scripts/p3_01_ecostress_search.py`, `scripts/config_utils.py`, `scripts/run_chain.py`, `scripts/p3_02_compare_ecostress.py`, `outputs/tables/p3_01_ecostress_passes.csv`, `outputs/tables/p2_07_stress_by_crop.csv`, `outputs/tables/p2_07_stress_by_lai.csv`, `outputs/tables/p2_04_tseb_by_crop.csv`, `data/ancillary/stations/arpae_giralda_20220719.csv` (escluso da Git), `outputs/tables/p2_04_tseb_by_lai.csv`, `outputs/tables/p2_04_sensitivity.csv`
 - `GUIDA_PERSONALE.md` (locale, esclusa da Git): spiegazioni, codice commentato, domande da colloquio. Va aggiornata a ogni step.
 
 ## Criticità aperte
+
+- **Validazione a livello di campo**: solo un giorno con Landsat (19/07). Servono altre date Landsat + S2 + S3 (estate 2022 e altri anni). ECOSTRESS 2022 sul Delta è sfocato: va bene solo a scala di qualche centinaio di metri. L'ESI di ECOSTRESS (PT-JPL) non è confrontabile con il CWSI termico di TSEB.
 
 - **Stress 19/07/2022**: su LAI > 3 TSEB dà CWSI mediano 0,5–0,6 (77–89% della superficie > 0,3). Coerente con le temperature (campi fitti da 32,6 a 38,6 °C) ma da validare. Ipotesi da verificare: campi non irrigati per siccità o cuneo salino (dati consortili di bonifica, ECOSTRESS). TSEB è poco sensibile allo stress della vegetazione rada (il calore in più finisce nel suolo). L'indice contestuale mostra un gradiente ovest-est probabilmente dovuto alla temperatura dell'aria.
 

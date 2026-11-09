@@ -34,6 +34,8 @@ import pandas as pd
 import xarray as xr
 import yaml
 
+from config_utils import load_config
+
 from p1_03_training_table import as_raster, open_nc
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -94,7 +96,7 @@ def run_snap_network(net, X):
 
 
 def main():
-    cfg = yaml.safe_load(open(CONFIG_FILE, encoding="utf-8"))
+    cfg = load_config()
     bio, tr = cfg["biophysical"], cfg["training"]
     crs = cfg["download"]["output_crs"]
     raw = PROJECT_ROOT / cfg["paths"]["raw"]
@@ -200,7 +202,7 @@ def main():
     fig.savefig(PROJECT_ROOT / cfg["paths"]["figures"] / "p2_03_biophysical.png", dpi=150)
     plt.close(fig)
     log(f"\nFigura: {cfg['paths']['figures']}/p2_03_biophysical.png")
-    (PROJECT_ROOT / "outputs" / "p2_03_summary.txt").write_text("\n".join(LINES), encoding="utf-8")
+    (PROJECT_ROOT / cfg["paths"]["summaries"] / "p2_03_summary.txt").write_text("\n".join(LINES), encoding="utf-8")
 
 
 if __name__ == "__main__":

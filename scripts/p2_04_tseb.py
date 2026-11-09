@@ -42,6 +42,8 @@ import pandas as pd
 import rioxarray  # noqa: F401  (attiva .rio)
 import xarray as xr
 import yaml
+
+from config_utils import load_config, ta_offset_for
 from pyproj import Transformer
 from rasterio.enums import Resampling
 from pyTSEB import TSEB
@@ -308,7 +310,7 @@ def run_case(name, Tr, lai, mt, sza, cfg):
 
 
 def main():
-    cfg_all = yaml.safe_load(CONFIG_FILE.read_text(encoding="utf-8"))
+    cfg_all = load_config()
     cfg = cfg_all["tseb"]
     a = cfg_all["analysis_aoi"]
     bbox = (a["west"], a["south"], a["east"], a["north"])
@@ -347,9 +349,9 @@ def main():
     # Correzione esplicita della temperatura dell'aria (default 0). Le celle ERA5-Land dell'AOI
     # sono mare e vengono riempite dalla costa: l'aria rischia di essere troppo fresca.
     # Si cambia SOLO con una misura di stazione a supporto, e va dichiarato.
-    ta_off = float(cfg.get("ta_offset_K", 0.0))
+    ta_off, source = ta_offset_for(cfg_all)
     mt["T_A_K"] = mt["T_A_K"] + ta_off
-    log(f"  correzione Ta applicata: {ta_off:+.1f} K")
+    log(f"  correzione Ta applicata: {ta_off:+.1f} K ({source})")
 
     # --- Mappa colturale (EUCROPMAP 2022): altezza per coltura e esclusione di acqua/edificato ---
     crop_file = PROJECT_ROOT / cfg_all["paths"]["aux"] / cfg["cropmap_file"]
@@ -477,7 +479,7 @@ def main():
     fig.savefig(fig_dir / "p2_04_tseb.png", dpi=150)
     log(f"Figura: {(fig_dir / 'p2_04_tseb.png').relative_to(PROJECT_ROOT)}")
 
-    (PROJECT_ROOT / "outputs" / "p2_04_summary.txt").write_text(
+    (PROJECT_ROOT / cfg_all["paths"]["summaries"] / "p2_04_summary.txt").write_text(
         "\n".join(LINES) + "\n", encoding="utf-8")
 
 
