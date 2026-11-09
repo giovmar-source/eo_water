@@ -236,4 +236,5 @@ paths:
   figures: outputs/{date}/figures
   summaries: outputs/{date}
   tables_common: outputs/tables      # risultati che non dipendono dalla data
+  figures_common: outputs/figures
   aux: data/ancillary

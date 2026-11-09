@@ -27,6 +27,7 @@ Perche' un modulo comune: la stessa logica copiata in 12 script finirebbe per di
 
 import argparse
 import copy
+import json
 from pathlib import Path
 
 import pandas as pd
@@ -50,7 +51,8 @@ def deep_update(base, extra):
 def pick_s3_pass(path, hours=(8, 12), target_hour=10.0):
     """
     Sceglie il passaggio Sentinel-3 diurno con piu' pixel limpidi.
-    A parita' (entro il 5%), preferisce quello piu' vicino alle 10 UTC.
+    A parita' (entro il 5%), preferisce quello piu' vicino a target_hour (10 UTC, oppure
+    l'ora di Landsat se quel giorno c'e' Landsat).
     Restituisce l'ora come testo "HH:MM".
     """
     import xarray as xr
@@ -102,7 +104,15 @@ def load_config(verbose=True):
     # Ora del passaggio Sentinel-3 (serve a sharpening, TSEB e confronto con la stazione)
     s3_file = PROJECT_ROOT / cfg["paths"]["raw"] / "s3_lst.nc"
     if str(cfg["training"]["s3_time_utc"]).lower() == "auto":
-        cfg["training"]["s3_time_utc"] = pick_s3_pass(s3_file) if s3_file.exists() else None
+        # Se quel giorno c'e' Landsat, si preferisce il passaggio S3 piu' vicino a Landsat:
+        # la superficie si scalda in fretta la mattina, quindi conta la simultaneita'.
+        target = 10.0
+        meta = PROJECT_ROOT / cfg["paths"]["raw"] / "landsat_metadata.json"
+        if meta.exists():
+            t_ls = pd.Timestamp(json.loads(meta.read_text(encoding="utf-8"))["datetime_utc"])
+            target = t_ls.hour + t_ls.minute / 60
+        cfg["training"]["s3_time_utc"] = (pick_s3_pass(s3_file, target_hour=target)
+                                          if s3_file.exists() else None)
     cfg["tseb"]["overpass_utc"] = cfg["training"]["s3_time_utc"]
 
     for key in ("tables", "figures", "summaries", "processed", "raw"):

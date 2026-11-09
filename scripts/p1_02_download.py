@@ -18,6 +18,7 @@ Se un file esiste gia' non viene riscaricato (per rifarlo, cancellalo).
 """
 
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -25,6 +26,7 @@ from pathlib import Path
 import openeo
 import pandas as pd
 import planetary_computer
+import requests
 import rioxarray
 import yaml
 
@@ -157,13 +159,20 @@ def download_landsat(cfg, out_dir):
             print(f"{out.name} esiste gia': salto.")
             continue
         href = item.assets[key].href
-        print(f"Leggo {key} (solo il ritaglio sull'area, non la scena intera) ...")
-        # Il file e' un Cloud Optimized GeoTIFF: GDAL legge via internet solo i blocchi
-        # che servono. clip_box accetta il riquadro in gradi (crs=EPSG:4326) e lo
-        # converte nella proiezione della scena.
-        with rioxarray.open_rasterio(href) as src:
+        # Scarichiamo il file intero con requests e lo ritagliamo in locale. La lettura
+        # parziale via HTTP con GDAL e' piu' leggera, ma su Windows lasciava operazioni di
+        # rete appese e il processo non si chiudeva piu' (catena bloccata dopo il download).
+        tmp = out_dir / f"_tmp_{key}.tif"
+        print(f"Scarico {key} ...", flush=True)
+        with requests.get(href, stream=True, timeout=120) as r:
+            r.raise_for_status()
+            with open(tmp, "wb") as f:
+                for chunk in r.iter_content(chunk_size=1 << 20):
+                    f.write(chunk)
+        with rioxarray.open_rasterio(tmp) as src:
             clip = src.rio.clip_box(*bbox, crs="EPSG:4326").squeeze("band", drop=True).load()
         clip.rio.to_raster(out)
+        tmp.unlink()                                      # il file intero non serve piu'
         print(f"Salvato {out.name}: {clip.shape[0]} x {clip.shape[1]} pixel, CRS {clip.rio.crs}")
 
     # Metadati: servono per convertire i valori grezzi in Kelvin (scala e offset)
@@ -197,3 +206,14 @@ def main():
 
 if __name__ == "__main__":
     main()
+    # Su Windows la lettura dei file via HTTP (GDAL, per Landsat) lascia connessioni aperte
+    # e Python resta "appeso" alla chiusura: anche os._exit si blocca, perche' Windows fa
+    # prima chiudere le librerie (ed e' li' che GDAL si blocca). TerminateProcess chiude il
+    # processo subito, senza aspettare nulla. Tutti i file sono gia' scritti e chiusi.
+    sys.stdout.flush()
+    sys.stderr.flush()
+    if os.name == "nt":
+        import ctypes
+        kernel32 = ctypes.windll.kernel32
+        kernel32.TerminateProcess(kernel32.GetCurrentProcess(), 0)
+    os._exit(0)

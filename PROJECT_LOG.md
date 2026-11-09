@@ -38,6 +38,10 @@ Repository: https://github.com/giovmar-source/eo_water (privato per ora). Cartel
 
 | 1 | 3c – Catena sull'11/08/2022 + confronto ECOSTRESS a 500 m: LST r 0,69 (bias +3,1 K, ECOSTRESS 49 min prima), ET r 0,61 (bias −0,8 mm/g), stress nessun accordo (definizioni diverse) | fatto | 2026-11-09 |
 
+| 1 | 3d – Nuova ricerca date 2019–2025 (apr–set) con nuvole misurate sull'area (QA Landsat, SCL S2): 33 giorni utilizzabili; selezionate 9 date per la validazione multi-data | fatto | 2026-11-09 |
+
+| 1 | 3e – Validazione multi-data: 10 date Landsat 2019–2025, r mediano 0,51 → 0,86, RMSE senza bias 3,10 → 1,99 K, migliorato 10/10 | fatto | 2026-11-09 |
+
 ## Decisioni
 
 | Data | Decisione | Motivazione |
@@ -87,17 +91,20 @@ Repository: https://github.com/giovmar-source/eo_water (privato per ora). Cartel
 | 2026-11-09 | Data come parametro, percorsi {date}, S3 'auto', Ta 'auto' da p2_05, validazione Landsat/ECOSTRESS | Serve per validazione, serie temporale e articolo; una sola fonte di verità |
 | 2026-11-09 | Output spostati in outputs/<data>/ | Più date senza sovrascrivere |
 | 2026-11-09 | Confronto con ECOSTRESS a 500 m, non a 70–100 m | Scene ECOSTRESS 2022 sfocate e con strisce; le anomalie sotto il km concordano (r 0,56 a 300 m), ma la validazione a livello di campo resta Landsat |
+| 2026-11-09 | Nuvole valutate sull'area (ritagli delle maschere COG), non sulla scena intera | La copertura di scena (110–185 km) scartava giorni limpidi sul Delta: da 1 a 33 giorni utilizzabili |
+| 2026-11-09 | Passaggio S3 'auto' più vicino all'ora di Landsat quando c'è Landsat | Simultaneità: la superficie si scalda di 2–3 °C/ora la mattina |
+| 2026-11-09 | Landsat scaricato intero con requests e ritagliato in locale (non più letto via HTTP con GDAL) | Su Windows la lettura GDAL via HTTP lasciava il processo appeso e bloccava run_chain |
 
 ## File prodotti
 
 - `environment.yml`, `check_env.py`, `.gitignore`, `PROJECT_LOG.md`, `.vscode/settings.json` (locale)
 - `config/step02_first_look.yaml`, `scripts/step02_download.py`, `scripts/step02_first_look.py`
-- `config/phase1_sharpening.yaml`, `scripts/p1_01_find_dates.py`, `outputs/tables/p1_coincident_dates.csv`, `scripts/p1_02_download.py`, `scripts/p1_03_training_table.py`, `scripts/p1_04_models.py`, `scripts/p1_05_sharpen.py`, `scripts/p2_01_download_era5.py`, `scripts/p2_02_download_biophys_inputs.py`, `scripts/p2_03_biophysical.py`, `scripts/p2_04_tseb.py`, `scripts/p2_05_station_check.py`, `scripts/p2_06_download_cropmap.py`, `scripts/p2_07_water_stress.py`, `scripts/p3_01_ecostress_search.py`, `scripts/config_utils.py`, `scripts/run_chain.py`, `scripts/p3_02_compare_ecostress.py`, `outputs/tables/p3_01_ecostress_passes.csv`, `outputs/tables/p2_07_stress_by_crop.csv`, `outputs/tables/p2_07_stress_by_lai.csv`, `outputs/tables/p2_04_tseb_by_crop.csv`, `data/ancillary/stations/arpae_giralda_20220719.csv` (escluso da Git), `outputs/tables/p2_04_tseb_by_lai.csv`, `outputs/tables/p2_04_sensitivity.csv`
+- `config/phase1_sharpening.yaml`, `scripts/p1_01_find_dates.py`, `outputs/tables/p1_coincident_dates.csv`, `outputs/tables/p3_03_validation_all_dates.csv`, `outputs/figures/p3_03_validation_all_dates.png`, `scripts/p1_02_download.py`, `scripts/p1_03_training_table.py`, `scripts/p1_04_models.py`, `scripts/p1_05_sharpen.py`, `scripts/p2_01_download_era5.py`, `scripts/p2_02_download_biophys_inputs.py`, `scripts/p2_03_biophysical.py`, `scripts/p2_04_tseb.py`, `scripts/p2_05_station_check.py`, `scripts/p2_06_download_cropmap.py`, `scripts/p2_07_water_stress.py`, `scripts/p3_01_ecostress_search.py`, `scripts/config_utils.py`, `scripts/run_chain.py`, `scripts/p3_02_compare_ecostress.py`, `scripts/p3_03_validation_summary.py`, `outputs/tables/p1_coincident_dates.csv`, `outputs/tables/p3_03_validation_all_dates.csv`, `outputs/figures/p3_03_validation_all_dates.png`, `outputs/tables/p3_01_ecostress_passes.csv`, `outputs/tables/p2_07_stress_by_crop.csv`, `outputs/tables/p2_07_stress_by_lai.csv`, `outputs/tables/p2_04_tseb_by_crop.csv`, `data/ancillary/stations/arpae_giralda_20220719.csv` (escluso da Git), `outputs/tables/p2_04_tseb_by_lai.csv`, `outputs/tables/p2_04_sensitivity.csv`
 - `GUIDA_PERSONALE.md` (locale, esclusa da Git): spiegazioni, codice commentato, domande da colloquio. Va aggiornata a ogni step.
 
 ## Criticità aperte
 
-- **Validazione a livello di campo**: solo un giorno con Landsat (19/07). Servono altre date Landsat + S2 + S3 (estate 2022 e altri anni). ECOSTRESS 2022 sul Delta è sfocato: va bene solo a scala di qualche centinaio di metri. L'ESI di ECOSTRESS (PT-JPL) non è confrontabile con il CWSI termico di TSEB.
+- ~~Validazione a livello di campo su un giorno solo~~: risolto, 10 date Landsat 2019–2025 (r mediano 0,86). ECOSTRESS 2022 sul Delta è sfocato: va bene solo a scala di qualche centinaio di metri. L'ESI di ECOSTRESS (PT-JPL) non è confrontabile con il CWSI termico di TSEB.
 
 - **Stress 19/07/2022**: su LAI > 3 TSEB dà CWSI mediano 0,5–0,6 (77–89% della superficie > 0,3). Coerente con le temperature (campi fitti da 32,6 a 38,6 °C) ma da validare. Ipotesi da verificare: campi non irrigati per siccità o cuneo salino (dati consortili di bonifica, ECOSTRESS). TSEB è poco sensibile allo stress della vegetazione rada (il calore in più finisce nel suolo). L'indice contestuale mostra un gradiente ovest-est probabilmente dovuto alla temperatura dell'aria.
 

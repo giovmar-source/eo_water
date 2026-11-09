@@ -3,6 +3,7 @@ run_chain.py - Esegue tutta la catena della Fase 1 per una data, nell'ordine giu
 
     python scripts/run_chain.py --date 2022-08-11
     python scripts/run_chain.py --date 2022-08-11 --from p1_03   # riparte da uno step
+    python scripts/run_chain.py --date 2019-08-04 2020-06-19 --solo-sharpening   # piu' date
 
 Ordine:
   p1_02  download Sentinel-2, Sentinel-3 (openEO) e Landsat se passa quel giorno
@@ -35,28 +36,47 @@ OPTIONAL = {"p2_05_station_check"}     # senza stazione si prosegue (TSEB usera'
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[1])
-    parser.add_argument("--date", required=True, help="AAAA-MM-GG")
+    parser.add_argument("--date", required=True, nargs="+", help="una o piu' date AAAA-MM-GG")
     parser.add_argument("--from", dest="start", default=None,
-                        help="prefisso dello step da cui ripartire, es. p1_03")
+                        help="prefisso dello step da cui partire, es. p1_03")
+    parser.add_argument("--to", dest="stop", default=None,
+                        help="prefisso dell'ultimo step da eseguire, es. p1_05")
+    parser.add_argument("--solo-sharpening", action="store_true",
+                        help="solo download S2/S3/Landsat, sharpening e validazione (step p1_)")
     args = parser.parse_args()
 
-    steps = STEPS
-    if args.start:
-        idx = next((i for i, s in enumerate(STEPS) if s.startswith(args.start)), None)
+    def index_of(prefix):
+        idx = next((i for i, s in enumerate(STEPS) if s.startswith(prefix)), None)
         if idx is None:
-            sys.exit(f"Step {args.start} sconosciuto. Possibili: {', '.join(STEPS)}")
-        steps = STEPS[idx:]
+            sys.exit(f"Step {prefix} sconosciuto. Possibili: {', '.join(STEPS)}")
+        return idx
 
-    for step in steps:
-        print(f"\n{'#' * 70}\n# {step}  ({args.date})\n{'#' * 70}", flush=True)
-        result = subprocess.run([sys.executable, str(SCRIPTS / f"{step}.py"), "--date", args.date])
-        if result.returncode != 0:
-            if step in OPTIONAL:
-                print(f"\n{step} non riuscito: proseguo senza (vedi messaggio sopra).")
-                continue
-            sys.exit(f"\nCatena interrotta a {step}. Correggi e riparti con: "
-                     f"python scripts/run_chain.py --date {args.date} --from {step[:5]}")
-    print(f"\nCatena completata per il {args.date}.")
+    first = index_of(args.start) if args.start else 0
+    last = index_of(args.stop) if args.stop else len(STEPS) - 1
+    steps = STEPS[first:last + 1]
+    if args.solo_sharpening:
+        steps = [s for s in steps if s.startswith("p1_")]
+
+    failed = []
+    for date in args.date:
+        ok = True
+        for step in steps:
+            print(f"\n{'#' * 70}\n# {step}  ({date})\n{'#' * 70}", flush=True)
+            result = subprocess.run([sys.executable, str(SCRIPTS / f"{step}.py"), "--date", date])
+            if result.returncode != 0:
+                if step in OPTIONAL:
+                    print(f"\n{step} non riuscito: proseguo senza (vedi messaggio sopra).")
+                    continue
+                print(f"\nCatena interrotta a {step} per il {date}. Per ripartire: "
+                      f"python scripts/run_chain.py --date {date} --from {step[:5]}")
+                failed.append((date, step))
+                ok = False
+                break                    # passa alla data successiva invece di fermare tutto
+        if ok:
+            print(f"\nCatena completata per il {date}.")
+    if failed:
+        print("\nDate non completate: " + ", ".join(f"{d} ({s})" for d, s in failed))
+        sys.exit(1)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,25 @@
+Landsat: LC09_L2SP_191029_20240412_02_T1, 2024-04-12T09:52 UTC, pixel validi 62%
+
+=== Foresta casuale ===
+Previsione a 20 m: 2532849 pixel
+Residui a 1 km: media +0.25 K, deviazione std 2.68 K
+
+=== Lineare tutte ===
+Previsione a 20 m: 2532849 pixel
+Residui a 1 km: media -0.48 K, deviazione std 2.16 K
+
+Validazione con Landsat a 100 m (stesse celle per tutti i metodi):
+                                     metodo     n  bias_K  RMSE_K  RMSE_senza_bias_K     r
+Sentinel-3 interpolato (nessuno sharpening) 86629  -0.665   3.217              3.147 0.543
+         Foresta casuale (senza correzione) 86629  -1.358   2.550              2.158 0.820
+           Foresta casuale (con correzione) 86629  -0.659   2.014              1.903 0.863
+           Lineare tutte (senza correzione) 86629  -0.377   3.099              3.076 0.758
+             Lineare tutte (con correzione) 86629  -0.562   3.124              3.073 0.786
+
+Variabilita' dentro ogni pixel da 1 km (deviazione std dei valori a 100 m, mediana):
+  Landsat (vera):           2.52 K
+  Foresta casuale           2.38 K  (rapporto ricostruita/vera 94%)
+  Lineare tutte             3.86 K  (rapporto ricostruita/vera 153%)
+
+Mappe: outputs/20240412/figures/p1_05_sharpening_maps.png
+Confronto: outputs/20240412/figures/p1_05_validation_scatter.png
