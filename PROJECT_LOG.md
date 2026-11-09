@@ -24,7 +24,13 @@ Repository: https://github.com/giovmar-source/eo_water (privato per ora). Cartel
 | 1 | 1a – Ricerca date con passaggio comune S2 + S3 + Landsat (STAC): trovato 19/07/2022 | fatto | 2026-11-05 |
 | 1 | 1b – Download dati del 19/07/2022 (S2 11 bande, S3 LST, Landsat 9 LC09_L2SP_192029_20220719) | fatto | 2026-11-05 |
 | 1 | 1c – Sharpening su una data con validazione Landsat: tabella, modelli, PSF, mappa a 20 m | fatto | 2026-11-05 |
-| 1 | 2 – Dalla LST a 20 m all'evapotraspirazione (TSEB) e allo stress idrico sul 19/07/2022 | da iniziare | |
+| 1 | 2a – Meteo ERA5-Land del 19/07/2022 (celle mare riempite con la terra più vicina) | fatto | 2026-11-05 |
+| 1 | 2b – LAI, FCOVER, FAPAR a 20 m con la rete neurale SNAP (8 bande + angoli), confronto con BIOPAR (3 bande) | fatto | 2026-11-05 |
+| 1 | 2c – TSEB-PT (pyTSEB 2.5.4) a 20 m, ET giornaliera, sensibilità a Ta, altezza chioma e LAI | primo run, Ta da verificare | 2026-11-05 |
+| 1 | 2c-bis – Verifica ERA5 con stazione ARPAE GIRALDA (Codigoro): ERA5 −2,1 K al passaggio → ta_offset_K +2 | fatto | 2026-11-06 |
+| 1 | 2c-ter – Altezza della chioma per coltura (EUCROPMAP 2022), quote sopra d_0, esclusi acqua/edificato: LE = 0 dal 7% al 3%, ET mediana 2,5 mm/g | fatto | 2026-11-06 |
+| 1 | 2c-quater – Frazione verde f_g = FAPAR/FIPAR (stoppie: traspirazione da 82 a 4 W/m², ET frumento 2,1 → 1,6 mm/g) | fatto | 2026-11-06 |
+| 1 | 2d – Stress idrico: CWSI TSEB (1 − LE_C/LE_C,pot) e CWSI contestuale per classi di LAI; accordo sul rango 0,84 per LAI ≥ 2, 0,43–0,58 per vegetazione rada | fatto (1 data) | 2026-11-06 |
 
 ## Decisioni
 
@@ -54,15 +60,42 @@ Repository: https://github.com/giovmar-source/eo_water (privato per ora). Cartel
 | 2026-11-05 | Tenere sia il modello lineare sia la foresta casuale fino alla validazione a scala fine con Landsat | A 1 km si equivalgono (R² 0,46 vs 0,43); conta la ricostruzione dei dettagli |
 | 2026-11-05 | Modello principale per lo sharpening: foresta casuale + correzione dei residui (residuo interpolato bilineare, sfocato con la stessa PSF) | Validazione Landsat 9 a 100 m (68.316 celle): r 0,87, RMSE 2,65 K (2,25 K senza bias) contro r 0,50, RMSE 4,27 K di S3 interpolato; variabilità interna al km ricostruita all'89% (lineare 139%: estrapola fuori dall'intervallo di addestramento) |
 | 2026-11-05 | Stress idrico valutato solo sui pixel vegetati (CWSI / TSEB); i campi caldi con NDMI basso a luglio sono suolo nudo (stoppie, arature), non stress | Caldo ≠ stress: il suolo nudo è caldo perché non traspira |
+| 2026-11-05 | ERA5-Land: celle classificate mare (gran parte del Delta) riempite con la cella di terra più vicina | ERA5-Land è solo terra; le celle costiere (Ta ~28 °C alle 10 UTC) rappresentano il Delta meglio dell'entroterra (~32 °C) |
+| 2026-11-05 | Parametri biofisici con il processore SNAP v2.1 (Weiss & Baret) reimplementato in Python, coefficienti scaricati dal repository ufficiale s2tbx; BIOPAR openEO (3 bande) solo come confronto | L'NDVI satura (NDVI 0,85-0,95 corrisponde a LAI 2-6+); SNAP usa red-edge e SWIR; BIOPAR openEO usa solo B03, B04, B08 |
+| 2026-11-05 | FCOVER usa il dominio di validità degli input di LAI | Il file non esiste per FCOVER in SNAP 2.1; quelli di LAI, FAPAR e LAI_Cab sono identici |
+
+| 2026-11-05 | TSEB-PT di pyTSEB 2.5.4 (pip, con radiative-transfer-models e Py6S) | Implementazione di riferimento (Nieto, Guzinski), la stessa del plugin Sen-ET di ESA |
+| 2026-11-05 | Sole calcolato all'ora del passaggio S3 (09:58), non dagli angoli S2 | La LST è quella delle 09:58 |
+| 2026-11-05 | Radiazione ERA5 media 09–11 UTC (differenza dei cumulati / 7200 s) | Valore centrato sull'istante del passaggio |
+| 2026-11-05 | ET giornaliera con rapporto LE / radiazione solare costante (Cammalleri 2014) | Usa la radiazione giornaliera ERA5, più robusto della frazione evaporativa costante |
+| 2026-11-05 | Nessuna correzione di Ta (ta_offset_K = 0) finché non c'è una stazione | Una correzione senza misura sarebbe calibrare il risultato che si vuole ottenere |
+| 2026-11-05 | Non usare l'alpha restituito da pyTSEB come indicatore di stress | Viene reimpostato a 1,36 a ogni iterazione: non mostra la riduzione per molti pixel |
+| 2026-11-06 | Ta ERA5 + 2,0 K su tutta l'area | Stazione ARPAE GIRALDA: ERA5 troppo fresca di 2,1 K alle 10 UTC; uno scarto (non il valore della stazione) conserva il gradiente costa-entroterra |
+| 2026-11-06 | Mappa colturale JRC EUCROPMAP 2022 (10 m, CC BY 4.0), ricampionata a 20 m con la moda | Distingue mais / riso / soia / cereali trebbiati, che hanno altezze diverse a parità di LAI; dato categorico → moda, mai media |
+| 2026-11-06 | Altezza massima per coltura a metà luglio, scalata dal LAI; quote meteo = quota ERA5 + d_0 | I pixel "secchi" a LAI > 4 erano per il 58% soia (bassa) a cui il LAI dava 1,8 m; con mais 2,5 m, 2 m dal suolo sarebbe dentro la chioma |
+| 2026-11-06 | Cartella `data/aux` rinominata `data/ancillary` | AUX è un nome riservato in Windows |
+| 2026-11-06 | Frazione verde f_g = FAPAR / FIPAR (FIPAR dal LAI con Beer, k = 0,5/cos zenit) | Separa stoppie (0,02) da colture verdi anche rade (mais giovane 1,09); una soglia sull'NDVI le confonderebbe |
+| 2026-11-06 | Stress da due indici indipendenti (TSEB assoluto, contestuale relativo senza Ta) | La mappa è credibile dove concordano sul rango; il contestuale non dà livelli assoluti |
+| 2026-11-06 | Stress calcolato solo per LAI ≥ 0,5 e f_g ≥ 0,5, esclusi acqua ed edificato | Sotto è suolo nudo o stoppie |
 
 ## File prodotti
 
 - `environment.yml`, `check_env.py`, `.gitignore`, `PROJECT_LOG.md`, `.vscode/settings.json` (locale)
 - `config/step02_first_look.yaml`, `scripts/step02_download.py`, `scripts/step02_first_look.py`
-- `config/phase1_sharpening.yaml`, `scripts/p1_01_find_dates.py`, `outputs/tables/p1_coincident_dates.csv`, `scripts/p1_02_download.py`, `scripts/p1_03_training_table.py`, `scripts/p1_04_models.py`, `scripts/p1_05_sharpen.py`
+- `config/phase1_sharpening.yaml`, `scripts/p1_01_find_dates.py`, `outputs/tables/p1_coincident_dates.csv`, `scripts/p1_02_download.py`, `scripts/p1_03_training_table.py`, `scripts/p1_04_models.py`, `scripts/p1_05_sharpen.py`, `scripts/p2_01_download_era5.py`, `scripts/p2_02_download_biophys_inputs.py`, `scripts/p2_03_biophysical.py`, `scripts/p2_04_tseb.py`, `scripts/p2_05_station_check.py`, `scripts/p2_06_download_cropmap.py`, `scripts/p2_07_water_stress.py`, `outputs/tables/p2_07_stress_by_crop.csv`, `outputs/tables/p2_07_stress_by_lai.csv`, `outputs/tables/p2_04_tseb_by_crop.csv`, `data/ancillary/stations/arpae_giralda_20220719.csv` (escluso da Git), `outputs/tables/p2_04_tseb_by_lai.csv`, `outputs/tables/p2_04_sensitivity.csv`
 - `GUIDA_PERSONALE.md` (locale, esclusa da Git): spiegazioni, codice commentato, domande da colloquio. Va aggiornata a ogni step.
 
 ## Criticità aperte
+
+- **Stress 19/07/2022**: su LAI > 3 TSEB dà CWSI mediano 0,5–0,6 (77–89% della superficie > 0,3). Coerente con le temperature (campi fitti da 32,6 a 38,6 °C) ma da validare. Ipotesi da verificare: campi non irrigati per siccità o cuneo salino (dati consortili di bonifica, ECOSTRESS). TSEB è poco sensibile allo stress della vegetazione rada (il calore in più finisce nel suolo). L'indice contestuale mostra un gradiente ovest-est probabilmente dovuto alla temperatura dell'aria.
+
+- **TSEB dopo le correzioni (06/11)**: le colture fitte (LAI > 3) hanno ancora un'ET più bassa di quelle con LAI 1–3 (circa 2,7–3 contro 4 mm/g). Può essere stress reale (luglio 2022: ondata di calore, siccità, cuneo salino) o un errore residuo: serve una validazione indipendente (ECOSTRESS, torri di flusso). Stoppie risolte con f_g, ma l'evaporazione del suolo trebbiato resta ~100 W/m² (residuo di TSEB-PT): probabilmente sovrastimata su suolo secco, dipende dalla resistenza del suolo R_S. Il riso è quasi assente nell'area (15 ha), contrariamente all'ipotesi iniziale.
+
+- **TSEB 19/07/2022, problema principale aperto**: con Ta ERA5 (28,5 °C) i campi più fitti (LAI > 3) risultano con ET = 0 (H ≈ Rn), mentre dovrebbero essere i più umidi. Landsat conferma che sono davvero caldi (36–37 °C; l'1% più fresco di tutto il suolo è 33 °C): il problema è la differenza superficie − aria. Le celle ERA5 dell'AOI sono mare, riempite da celle costiere più fresche. Sensibilità: +1 K di Ta ≈ +1 mm/g sulle colture fitte; altezza massima della chioma 1,0 m invece di 1,8 m riduce i pixel con LE = 0 su LAI > 3 dal 75% al 30%. **Aggiornamento 06/11**: con Ta +2 K (stazione GIRALDA) i pixel con LE = 0 scendono dal 21% al 7%; LAI 1–3 a ~3,7–4 mm/g, ma LAI > 4 ancora 0,4 mm/g. Restano da fare: (1) ~~Ta di stazione~~ fatto, solo una stazione (cercarne altre, anche ARPAV, verso la costa); (2) mappa colturale per l'altezza (riso ~1 m, mais ~2,5 m, stoppie di frumento); (3) eventualmente meteo a 100 m di quota come in Sen-ET.
+
+- **LAI SNAP vs BIOPAR (19/07/2022)**: accordo complessivo buono (r 0,93, scarto quadratico medio 0,61, inferiore all'errore dichiarato ~0,9 di ciascun metodo). Previsione NON confermata: BIOPAR non è più basso sulla vegetazione fitta, è più alto (+0,45 per NDVI > 0,85). Dentro la classe NDVI > 0,85 il LAI SNAP segue l'indice red-edge NDRE (Spearman 0,88 contro 0,65 di BIOPAR), BIOPAR segue di più l'NDVI (0,66 contro 0,58). Senza misure di LAI a terra non si può dire quale sia più vicino al vero: SNAP resta la scelta per motivi fisici (usa red-edge e SWIR); BIOPAR verrà usato come analisi di sensibilità in TSEB.
+
+- Verificare ERA5-Land (Ta, umidità, vento) con stazioni meteo del Delta (ARPAV / ARPAE) il 19/07/2022 alle 10 UTC: gradiente costa-entroterra di ~4,7 °C e Delta classificato "mare" in ERA5-Land.
 
 - **Risultato chiave 19/07/2022**: a 1 km le bande S2 spiegano solo ~35% della varianza della LST Sentinel-3 (R² spaziale 0,35; lineare NDVI = lineare tutte = foresta casuale), ma ~80% della LST Landsat 9 mediata a 1 km (R² 0,82). Il limite è nel dato Sentinel-3, non nella fisica. Nessuno spostamento di un pixel intero; la correlazione S3-Landsat cresce da 0,74 a 0,79 sfocando Landsat con una gaussiana di sigma ~500 m → l'impronta effettiva di Sentinel-3 è più ampia della cella da 1 km (PSF). Applicata la stessa sfocatura (sigma 500 m) a S2 prima dell'aggregazione: R² spaziale (lineare tutte) da 0,35 a 0,46; massimo a 500 m tra 0/250/500/750 m. Divario residuo con Landsat (0,82) attribuito a rumore della LST S3 e differenze tra sensori.
 
@@ -71,6 +104,7 @@ Repository: https://github.com/giovmar-source/eo_water (privato per ora). Cartel
 - Rischio di circolarità dello sharpening ottico sullo stress precoce (stomi chiusi, foglie ancora verdi): da quantificare con Landsat.
 - Ipotesi di frazione evaporativa costante per passare da ET istantanea a giornaliera: da dichiarare e, se possibile, verificare.
 
+- Pubblicazione: per un articolo servono più date/anni, una domanda scientifica (es. siccità e risalita del cuneo salino 2022) e un confronto con dati indipendenti (ECOSTRESS, torri di flusso se disponibili).
 - Nome definitivo del progetto e del repository.
 - Area InSAR da decidere in Fase 2 dopo verifica in letteratura.
 - Disponibilità di torri di flusso (eddy covariance) per la validazione dell'ET: da verificare.

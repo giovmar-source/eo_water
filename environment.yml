@@ -39,3 +39,8 @@ dependencies:
   - pyyaml
   - tqdm
   - pytest
+  - py6s               # richiesto da radiative-transfer-models (pyPro4Sail)
+  - pip
+  - pip:
+      - pytseb==2.5.4               # bilancio energetico a due sorgenti (Nieto et al.)
+      - radiative-transfer-models   # contiene pypro4sail, dipendenza di pyTSEB

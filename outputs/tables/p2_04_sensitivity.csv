@@ -1,0 +1,10 @@
+variante,dTa_extra_K,LAI -0.001-0.5,LAI 0.5-1,LAI 1-2,LAI 2-3,LAI 3-8,LE=0 su LAI>3 (%)
+"altezza da LAI, senza f_g",-1,1.66,1.89,3.39,2.63,0.0,56.7
+"altezza da LAI, senza f_g",0,1.88,2.23,3.96,3.62,1.25,34.9
+"altezza da LAI, senza f_g",1,2.11,2.53,4.38,4.57,2.74,19.2
+"altezza da coltura, senza f_g",-1,1.9,2.2,3.59,3.11,1.84,27.1
+"altezza da coltura, senza f_g",0,2.1,2.48,4.06,4.03,2.92,13.6
+"altezza da coltura, senza f_g",1,2.3,2.73,4.46,4.89,4.03,5.3
+"altezza da coltura, con f_g",-1,1.54,2.06,3.55,3.13,1.82,27.0
+"altezza da coltura, con f_g",0,1.75,2.36,4.02,4.05,2.92,13.5
+"altezza da coltura, con f_g",1,1.95,2.63,4.38,4.89,4.04,5.2

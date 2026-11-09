@@ -82,8 +82,134 @@ sharpening:
   min_valid_fraction: 0.9        # cella da 100 m usata solo se >= 90% dei pixel fini e' valido
   predict_chunk: 500000          # pixel previsti per blocco (limita l'uso di memoria)
 
+# Meteo ERA5-Land (Copernicus Climate Data Store) per il bilancio energetico
+meteo:
+  dataset: reanalysis-era5-land
+  variables:
+    - 2m_temperature                      # temperatura dell'aria a 2 m
+    - 2m_dewpoint_temperature             # punto di rugiada -> pressione di vapore
+    - 10m_u_component_of_wind             # vento verso est a 10 m
+    - 10m_v_component_of_wind             # vento verso nord a 10 m
+    - surface_pressure                    # pressione al suolo
+    - surface_solar_radiation_downwards   # radiazione solare in arrivo (CUMULATA dalle 00 UTC)
+    - surface_thermal_radiation_downwards # radiazione infrarossa dall'atmosfera (CUMULATA)
+  margin_deg: 0.2          # margine attorno all'area di addestramento (celle ERA5-Land da ~0,1°)
+  overpass_hour_utc: 10    # ora piu' vicina al passaggio dei satelliti (09:58)
+
+# Parametri biofisici della vegetazione (LAI, copertura, FAPAR) da Sentinel-2
+biophysical:
+  # Metodo principale: processore biofisico di ESA SNAP (Weiss & Baret), 8 bande + 3 angoli
+  snap_version: "2_1"
+  snap_url: https://raw.githubusercontent.com/senbox-org/s2tbx/master/s2tbx-biophysical/src/main/resources/auxdata
+  snap_variables: [LAI, FCOVER, FAPAR]
+  snap_bands: [B03, B04, B05, B06, B07, B8A, B11, B12]   # ordine richiesto dalla rete
+  angle_bands: [sunZenithAngles, sunAzimuthAngles, viewZenithMean, viewAzimuthMean]
+  # Confronto: servizio BIOPAR su openEO (versione a 3 bande B03, B04, B08)
+  biopar_namespace: https://raw.githubusercontent.com/ESA-APEx/apex_algorithms/refs/heads/main/algorithm_catalog/vito/biopar/openeo_udp/biopar.json
+  biopar_type: LAI
+
+# Bilancio energetico a due sorgenti (pyTSEB, versione Priestley-Taylor)
+tseb:
+  lst_file: lst_sharpened_foresta_casuale.tif   # LST a 20 m dallo sharpening
+  lai_file: lai_snap.tif                        # LAI principale (SNAP)
+  fapar_file: fapar_snap.tif                    # per la frazione verde f_g = FAPAR / FIPAR
+  overpass_utc: "09:58"
+  # Altezze di misura del meteo ERA5-Land
+  z_u_m: 10.0              # vento a 10 m
+  z_T_m: 2.0               # temperatura a 2 m
+  # Altezza della chioma: non misurata -> stimata dal LAI (ipotesi da dichiarare)
+  # h = h_min + (h_max - h_min) * min(LAI / lai_at_hmax, 1)
+  # h_max 1,8 m: la temperatura a 2 m deve restare SOPRA la chioma (teoria di Monin-Obukhov)
+  h_min_m: 0.05
+  h_max_m: 1.8
+  lai_at_hmax: 4.0
+  leaf_width_m: 0.05       # larghezza tipica delle foglie di colture erbacee
+  emis_C: 0.98             # emissivita' delle foglie
+  emis_S: 0.95             # emissivita' del suolo
+  # Proprieta' ottiche di foglie e suolo per dividere la radiazione solare (valori tipici)
+  rho_leaf_vis: 0.07
+  tau_leaf_vis: 0.08
+  rho_leaf_nir: 0.32
+  tau_leaf_nir: 0.33
+  rho_soil_vis: 0.15
+  rho_soil_nir: 0.25
+  vza_deg: 0.0             # angolo di vista del termico (semplificazione: vista verticale)
+  lambda_J_kg: 2450000.0     # calore di vaporizzazione dell'acqua
+  vegetated_lai_min: 0.5   # pixel "vegetati" per le statistiche di stress
+  # Correzione della temperatura dell'aria ERA5 (K). 0 finche' non c'e' una stazione a supporto.
+  ta_offset_K: 2.0          # ERA5 troppo fresca di 2,1 K alla stazione ARPAE GIRALDA (Step 2c-bis)
+  # Sensibilita' calcolata automaticamente su un campione di pixel (in piu' rispetto a ta_offset_K)
+  sens_ta_offsets_K: [-1, 0, 1]
+  # Mappa colturale EUCROPMAP 2022 a 20 m (da p2_06)
+  cropmap_file: eucropmap_2022_20m.tif
+  exclude_classes: [0, 100, 700, 800]   # nessun dato, edificato, acqua, zone umide
+  # Altezza massima tipica a meta' luglio (m); il LAI scala tra h_min e questo valore.
+  # Cereali vernini gia' trebbiati: se c'e' LAI alto e' una coltura in secondo raccolto (es. soia).
+  crop_h_max_m:
+    211: 0.8     # frumento tenero (stoppie o secondo raccolto)
+    212: 0.8     # frumento duro
+    213: 0.8     # orzo
+    216: 2.5     # mais
+    217: 1.0     # riso
+    221: 0.6     # patate
+    222: 0.6     # barbabietola
+    231: 1.8     # girasole
+    233: 0.8     # soia
+    240: 0.7     # legumi secchi
+    250: 0.6     # foraggere (erba medica)
+    290: 0.3     # seminativo nudo
+    300: 4.0     # bosco, frutteti, pioppeti
+    500: 0.4     # prati
+    600: 0.1     # suolo nudo
+  # Quote del meteo misurate sopra il piano di spostamento d_0 (necessario con chiome > 2 m)
+  heights_above_d0: true
+
+# Stress idrico (Step 2d)
+stress:
+  lai_min: 0.5            # sotto e' quasi suolo nudo: lo "stress" non ha senso
+  f_g_min: 0.5            # chioma almeno per meta' verde (esclude stoppie)
+  lai_bins: [0.5, 1, 2, 3, 4, 8]   # classi di LAI per l'indice contestuale
+  p_wet: 2                # percentile freddo (campi ben irrigati)
+  p_dry: 98               # percentile caldo (campi senz'acqua)
+  stress_threshold: 0.3   # CWSI oltre cui un pixel e' considerato stressato
+
+# Stazioni a terra per verificare il meteo ERA5-Land
+stations:
+  file: data/ancillary/stations/arpae_giralda_20220719.csv   # ARPAE-SIMC Dext3r, CC BY 4.0
+
+# Mappa colturale europea 2022 (JRC EUCROPMAP, 10 m, CC BY 4.0)
+cropmap:
+  url: https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/EUCROPMAP/2022/EU_CropMap_22_v1_stratum_EU27-HR.tif
+  legend:
+    100: Artificiale
+    211: Frumento tenero
+    212: Frumento duro
+    213: Orzo
+    214: Segale
+    215: Avena
+    216: Mais
+    217: Riso
+    218: Triticale
+    219: Altri cereali
+    221: Patate
+    222: Barbabietola da zucchero
+    223: Altre radici
+    230: Altre industriali
+    231: Girasole
+    232: Colza
+    233: Soia
+    240: Legumi secchi
+    250: Foraggere
+    290: Seminativo nudo
+    300: Bosco e arbusti (incl. colture permanenti)
+    500: Prati
+    600: Suolo nudo
+    700: Acqua
+    800: Zone umide
+
 paths:
   tables: outputs/tables
   figures: outputs/figures
   raw: data/raw/p1_20220719
   processed: data/processed/p1_20220719
+  aux: data/ancillary
