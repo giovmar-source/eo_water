@@ -1,9 +1,6 @@
 Stazione GIRALDA (CODIGORO), lon 12.24834, lat 44.81376
 
 Ora UTC   stazione  ERA5   differenza
-09/08 21:00    21.83     nan    +nan
-09/08 22:00    21.39     nan    +nan
-09/08 23:00    20.62     nan    +nan
 10/08 00:00    19.73     nan    +nan
 10/08 01:00    19.61     nan    +nan
 10/08 02:00    20.18     nan    +nan

@@ -16,4 +16,4 @@ classe NDVI
 (0.8, 0.85]  177074      3.17        3.35       -0.19
 (0.85, 1.0]  159418      4.45        4.89       -0.45
 
-Figura: outputs/figures/p2_03_biophysical.png
+Figura: outputs/20220719/figures/p2_03_biophysical.png

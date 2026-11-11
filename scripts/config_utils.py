@@ -84,6 +84,8 @@ def load_config(verbose=True):
     """Configurazione per la data scelta con --date (default: reference_date)."""
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument("--date", help="data da elaborare, formato AAAA-MM-GG")
+    parser.add_argument("--altezza", choices=["coltura", "lai"], default=None,
+                        help="altezza della chioma in TSEB: dalla mappa colturale o solo dal LAI")
     args, _ = parser.parse_known_args()
 
     cfg = yaml.safe_load(CONFIG_FILE.read_text(encoding="utf-8"))
@@ -99,7 +101,13 @@ def load_config(verbose=True):
     # Percorsi con {date}
     cfg["paths"] = {k: v.format(date=compact) for k, v in cfg["paths"].items()}
     if "stations" in cfg:
-        cfg["stations"]["file"] = cfg["stations"]["file"].format(date=compact)
+        # Prima il file di quel giorno, altrimenti quello dell'intera estate (un file per anno)
+        per_day = cfg["stations"]["file"].format(date=compact)
+        per_year = cfg["stations"].get("file_year", "").format(year=date[:4])
+        if not (PROJECT_ROOT / per_day).exists() and per_year and (PROJECT_ROOT / per_year).exists():
+            cfg["stations"]["file"] = per_year
+        else:
+            cfg["stations"]["file"] = per_day
 
     # Ora del passaggio Sentinel-3 (serve a sharpening, TSEB e confronto con la stazione)
     s3_file = PROJECT_ROOT / cfg["paths"]["raw"] / "s3_lst.nc"
@@ -115,12 +123,19 @@ def load_config(verbose=True):
                                           if s3_file.exists() else None)
     cfg["tseb"]["overpass_utc"] = cfg["training"]["s3_time_utc"]
 
+    # Altezza della chioma in TSEB. "coltura" = altezza tipica per coltura (EUCROPMAP 2022);
+    # "lai" = stessa regola dal LAI per tutti i pixel (coerente tra anni con colture diverse).
+    # I file di TSEB e dello stress hanno un suffisso, cosi' le due varianti convivono.
+    source = args.altezza or cfg["tseb"].get("height_source", "coltura")
+    cfg["tseb"]["height_source"] = source
+    cfg["tseb"]["run_suffix"] = "" if source == "coltura" else "_hlai"
+
     for key in ("tables", "figures", "summaries", "processed", "raw"):
         (PROJECT_ROOT / cfg["paths"][key]).mkdir(parents=True, exist_ok=True)
 
     if verbose:
         print(f"=== Data {date} | Sentinel-3 {cfg['training']['s3_time_utc'] or 'non ancora scaricato'} "
-              f"| dati in {cfg['paths']['raw']} ===")
+              f"| altezza chioma: {source} | dati in {cfg['paths']['raw']} ===")
     return cfg
 
 

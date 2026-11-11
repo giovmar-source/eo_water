@@ -26,5 +26,5 @@ Importanza dei predittori (aumento dell'RMSE in K se il predittore viene 'mescol
   B08   -0.007
   B07   -0.015
 
-Figura: outputs/figures/p1_04_models.png
-Tabella: outputs/tables/p1_04_model_scores.csv
+Figura: outputs/20220719/figures/p1_04_models.png
+Tabella: outputs/20220719/tables/p1_04_model_scores.csv

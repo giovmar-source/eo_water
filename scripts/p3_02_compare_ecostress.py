@@ -90,8 +90,8 @@ def main():
 
     lst = read(proc / cfg["tseb"]["lst_file"])
     ours = {"LST": lst,
-            "ET": read(proc / "tseb_et_day.tif"),
-            "stress": read(proc / "cwsi_tseb.tif")}           # solo pixel vegetati (Step 2d)
+            "ET": read(proc / f"tseb_et_day{cfg['tseb']['run_suffix']}.tif"),
+            "stress": read(proc / f"cwsi_tseb{cfg['tseb']['run_suffix']}.tif")}           # solo pixel vegetati (Step 2d)
     units = {"LST": "K", "ET": "mm/giorno", "stress": "0-1"}
 
     rows, pairs = [], {}

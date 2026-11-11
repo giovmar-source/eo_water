@@ -77,6 +77,18 @@ def main():
         raise SystemExit(f"Manca il file della stazione {st_cfg['file']}: scaricalo da Dext3r "
                          "(temperatura media oraria, giorno prima/dopo compresi).")
     series, meta = read_dext3r(st_file)
+    # Il file puo' coprire un'estate intera: teniamo il giorno prima, quello del passaggio e il dopo
+    day = pd.Timestamp(cfg_all["reference_date"])
+    series = series[(series.index >= day - pd.Timedelta(days=1)) & (series.index < day + pd.Timedelta(days=2))]
+    if series.empty:
+        raise SystemExit(f"Il file {st_cfg['file']} non contiene il {cfg_all['reference_date']}.")
+    # Un buco di UNA sola ora si riempie interpolando tra l'ora prima e l'ora dopo (la temperatura
+    # dell'aria varia con continuita'); buchi piu' lunghi restano vuoti e fermano la correzione.
+    filled = series.isna() & series.shift(1).notna() & series.shift(-1).notna()   # buchi isolati
+    series = series.where(~filled, (series.shift(1) + series.shift(-1)) / 2)
+    if filled.any():
+        log("Ore mancanti riempite per interpolazione: " +
+            ", ".join(f"{t:%d/%m %H}:00" for t in series.index[filled]))
     lon = float(meta["Longitudine (Gradi Centesimali)"])
     lat = float(meta["Latitudine (Gradi Centesimali)"])
     log(f"Stazione {meta['Nome della stazione']} ({meta['Comune']}), lon {lon}, lat {lat}")
@@ -98,6 +110,9 @@ def main():
     t_pass = pd.Timestamp(f"{cfg_all['reference_date']} {cfg_all['tseb']['overpass_utc']}")
     centre = t_pass.round("h")                       # 09:58 -> 10:00
     win = df.loc[centre - pd.Timedelta(hours=1): centre]   # ore 09-10 e 10-11
+    if win["T_staz_C"].isna().any():
+        raise SystemExit(f"La stazione non ha misure attorno al passaggio del {cfg_all['reference_date']}: "
+                         "nessuna correzione di Ta per questa data (TSEB usera' ERA5 cosi' com'e').")
     bias = win["diff_staz_meno_era5"].mean()
     day = df.between_time("07:00", "15:00")["diff_staz_meno_era5"]
     log(f"\nAl passaggio ({t_pass:%H:%M} UTC): stazione {win.T_staz_C.mean():.2f} C, "

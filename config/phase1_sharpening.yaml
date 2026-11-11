@@ -169,6 +169,10 @@ tseb:
     600: 0.1     # suolo nudo
   # Quote del meteo misurate sopra il piano di spostamento d_0 (necessario con chiome > 2 m)
   heights_above_d0: true
+  # Altezza della chioma: "coltura" (EUCROPMAP 2022, piu' precisa nel 2022) oppure "lai"
+  # (stessa regola per tutti: coerente nel confronto tra anni con colture diverse).
+  # Si puo' cambiare al volo con --altezza coltura|lai.
+  height_source: coltura
 
 # Stress idrico (Step 2d)
 stress:
@@ -188,9 +192,29 @@ ecostress:
   max_cloud_pct: 10         # nuvole sulla terraferma dell'area
   compare_resolution_m: 500 # scala del confronto: ECOSTRESS e' meno nitido dei 70 m nominali
 
+# Contesto climatico (p4_01): pioggia e temperatura ERA5-Land mensili 1991-2025
+climate:
+  margin_deg: 0.3          # margine attorno all'area: servono abbastanza celle di terra
+
+# Confronto siccita' (p4_02): 2022 contro anni di riferimento, stesse finestre stagionali
+drought:
+  target_year: 2022
+  reference_years: [2023, 2024, 2025]
+  dates:
+    2022: ["2022-06-02", "2022-06-27", "2022-07-19", "2022-07-29", "2022-08-11"]   # 01/08: Sentinel-3 senza dati
+    2023: ["2023-06-12", "2023-06-29", "2023-07-14", "2023-08-11", "2023-08-23"]
+    2024: ["2024-06-06", "2024-06-28", "2024-07-16", "2024-07-28", "2024-08-15"]
+    2025: ["2025-06-10", "2025-06-28", "2025-07-20", "2025-07-31", "2025-08-12"]
+  min_dates: 3                # date valide minime per pixel per calcolare la media di un anno
+  season_days: 92             # giugno-agosto, per l'ordine di grandezza del volume
+  distance_bins_km: [0, 2, 4, 6, 8, 10, 15, 25]
+  cropmap_wide_file: eucropmap_2022_training_aoi.tif   # area ampia: serve per la distanza dal mare
+
 # Stazioni a terra per verificare il meteo ERA5-Land
 stations:
-  file: data/ancillary/stations/arpae_giralda_{date}.csv   # ARPAE-SIMC Dext3r, CC BY 4.0
+  file: data/ancillary/stations/arpae_giralda_{date}.csv
+  file_year: data/ancillary/stations/arpae_giralda_{year}.csv   # alternativa: un file per estate
+  precip_file: data/ancillary/stations/arpae_giralda_precip_2019_2025.csv   # pioggia giornaliera   # ARPAE-SIMC Dext3r, CC BY 4.0
 
 # Mappa colturale europea 2022 (JRC EUCROPMAP, 10 m, CC BY 4.0)
 cropmap:

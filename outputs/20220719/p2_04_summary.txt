@@ -1,10 +1,10 @@
-TSEB-PT - po_delta_porto_tolle - 2022-07-19 09:58 UTC
+TSEB-PT - po_delta_porto_tolle - 2022-07-19 09:58 UTC - altezza della chioma: coltura
 Griglia: 804 x 815 pixel a 20 m
 Zenit solare medio: 29.7 gradi
 Meteo medio sull'AOI all'ora del passaggio:
   Ta 28.5 C | ea 19.0 hPa | vento 3.8 m/s | p 1019 hPa
   SW 824 W/m2 | LW 375 W/m2 | SW giornaliera 27.2 MJ/m2
-  correzione Ta applicata: +2.0 K
+  correzione Ta applicata: +2.0 K (dalla stazione GIRALDA (p2_05))
 Frazione verde f_g: mediana 0.98, pixel con f_g < 0,3: 16.4%
 Mappa colturale: esclusi 17.9% dei pixel (classi [0, 100, 700, 800]: nessun dato, edificato, acqua, zone umide)
 
@@ -17,17 +17,17 @@ Sensibilita' (LAI BIOPAR):
   [BIOPAR] pixel senza soluzione (flag >= 252): 2
 
 Sensibilita' (30.000 pixel a caso): ET mediana (mm/g) per classe di LAI
-                                           LAI -0.001-0.5  LAI 0.5-1  LAI 1-2  LAI 2-3  LAI 3-8  LE=0 su LAI>3 (%)
-variante                      dTa_extra_K                                                                         
-altezza da LAI, senza f_g     -1                     1.66       1.89     3.39     2.63     0.00               56.7
-                               0                     1.88       2.23     3.96     3.62     1.25               34.9
-                               1                     2.11       2.53     4.38     4.57     2.74               19.2
-altezza da coltura, senza f_g -1                     1.90       2.20     3.59     3.11     1.84               27.1
-                               0                     2.10       2.48     4.06     4.03     2.92               13.6
-                               1                     2.30       2.73     4.46     4.89     4.03                5.3
-altezza da coltura, con f_g   -1                     1.54       2.06     3.55     3.13     1.82               27.0
-                               0                     1.75       2.36     4.02     4.05     2.92               13.5
-                               1                     1.95       2.63     4.38     4.89     4.04                5.2
+                                                    LAI -0.001-0.5  LAI 0.5-1  LAI 1-2  LAI 2-3  LAI 3-8  LE=0 su LAI>3 (%)
+variante                               dTa_extra_K                                                                         
+altezza da LAI, quote fisse, senza f_g -1                     1.66       1.89     3.39     2.63     0.00               56.7
+                                        0                     1.88       2.23     3.96     3.62     1.25               34.9
+                                        1                     2.11       2.53     4.38     4.57     2.74               19.2
+altezza coltura, senza f_g             -1                     1.90       2.20     3.59     3.11     1.84               27.1
+                                        0                     2.10       2.48     4.06     4.03     2.92               13.6
+                                        1                     2.30       2.73     4.46     4.89     4.03                5.3
+altezza coltura, con f_g               -1                     1.54       2.06     3.55     3.13     1.82               27.0
+                                        0                     1.75       2.36     4.02     4.05     2.92               13.5
+                                        1                     1.95       2.63     4.38     4.89     4.04                5.2
 
 GeoTIFF salvati in data\processed\p1_20220719/tseb_*.tif
 
@@ -62,4 +62,4 @@ classe_LAI
 
 ET giornaliera AOI: mediana 2.33 mm (p5 0.45, p95 5.31)
 Sensibilita' al LAI (BIOPAR - SNAP): mediana +0.02 mm/g, p5 -1.26, p95 +0.63
-Figura: outputs\figures\p2_04_tseb.png
+Figura: outputs\20220719\figures\p2_04_tseb.png

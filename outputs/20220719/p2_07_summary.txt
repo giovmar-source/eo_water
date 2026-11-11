@@ -32,4 +32,4 @@ Frumento tenero                              374.72               0.00          
 altro                                        234.00               0.00               0.24              0.19             37.90      0.04
 Legumi secchi                                179.40               0.00               1.74              0.43             79.87      0.20
 Barbabietola da zucchero                      58.04               0.48              75.74              0.83             99.93      0.85
-Figura: outputs/figures/p2_07_water_stress.png
+Figura: outputs/20220719/figures/p2_07_water_stress.png

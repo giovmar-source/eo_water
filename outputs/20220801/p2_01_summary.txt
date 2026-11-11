@@ -1,0 +1,20 @@
+Celle ERA5-Land con dati (terra): 34 su 72; le altre riempite con la cella di terra piu' vicina
+Salvato data/processed/p1_20220801/era5land_filled.nc
+Variabili: ['t2m', 'd2m', 'u10', 'v10', 'sp', 'ssrd', 'strd']
+Ore: da 2022-08-01 00:00:00 a 2022-08-02 23:00:00, griglia 8 x 9
+Il centro dell'area (44.95N, 12.35E) cade in una cella 'mare': uso i valori della cella di terra piu' vicina.
+
+Centro dell'area di analisi, ore 09-10 UTC del 01/08/2022:
+  Temperatura aria 2 m:         28.5 °C
+  Punto di rugiada:             21.0 °C  -> umidita' relativa   64%
+  Pressione di vapore:          24.9 hPa
+  Vento 10 m:                    3.5 m/s
+  Pressione al suolo:          1013.4 hPa
+  Radiazione solare (media):     761 W/m²
+  Radiazione infrarossa:         386 W/m²
+  Radiazione solare del giorno: 25.3 MJ/m²
+
+Controlli di plausibilita' (luglio, pianura padana, cielo sereno, meta' mattina):
+  aria 27-33 °C, radiazione solare 650-850 W/m², totale giornaliero 25-30 MJ/m².
+
+Temperatura dell'aria alle 10 UTC sulle celle di terra: da 28.2 °C (costa) a 32.7 °C (entroterra)

@@ -31,5 +31,5 @@ Ora UTC   stazione  ERA5   differenza
 
 Al passaggio (09:58 UTC): stazione 32.02 C, ERA5 29.91 C -> ERA5 troppo fresca di 2.10 K
 Ore 07-15 UTC: differenza media +1.22 K (min -0.86, max +2.25)
-Correzione suggerita: tseb.ta_offset_K = +2.0 (arrotondata a 0,5 K; una sola stazione -> da trattare come ipotesi)
-Figura: outputs/figures/p2_05_station_vs_era5.png
+Correzione per TSEB: +2.0 K (arrotondata a 0,5 K; una sola stazione -> da trattare come ipotesi)
+Figura: outputs/20220719/figures/p2_05_station_vs_era5.png

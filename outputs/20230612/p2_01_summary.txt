@@ -1,0 +1,20 @@
+Celle ERA5-Land con dati (terra): 34 su 72; le altre riempite con la cella di terra piu' vicina
+Salvato data/processed/p1_20230612/era5land_filled.nc
+Variabili: ['t2m', 'd2m', 'u10', 'v10', 'sp', 'ssrd', 'strd']
+Ore: da 2023-06-12 00:00:00 a 2023-06-13 23:00:00, griglia 8 x 9
+Il centro dell'area (44.95N, 12.35E) cade in una cella 'mare': uso i valori della cella di terra piu' vicina.
+
+Centro dell'area di analisi, ore 09-10 UTC del 12/06/2023:
+  Temperatura aria 2 m:         23.5 °C
+  Punto di rugiada:             16.2 °C  -> umidita' relativa   64%
+  Pressione di vapore:          18.4 hPa
+  Vento 10 m:                    4.4 m/s
+  Pressione al suolo:          1011.7 hPa
+  Radiazione solare (media):     779 W/m²
+  Radiazione infrarossa:         358 W/m²
+  Radiazione solare del giorno: 27.0 MJ/m²
+
+Controlli di plausibilita' (luglio, pianura padana, cielo sereno, meta' mattina):
+  aria 27-33 °C, radiazione solare 650-850 W/m², totale giornaliero 25-30 MJ/m².
+
+Temperatura dell'aria alle 10 UTC sulle celle di terra: da 23.2 °C (costa) a 25.1 °C (entroterra)

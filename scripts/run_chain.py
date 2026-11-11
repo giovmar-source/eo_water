@@ -41,6 +41,8 @@ def main():
                         help="prefisso dello step da cui partire, es. p1_03")
     parser.add_argument("--to", dest="stop", default=None,
                         help="prefisso dell'ultimo step da eseguire, es. p1_05")
+    parser.add_argument("--altezza", choices=["coltura", "lai"], default=None,
+                        help="altezza della chioma in TSEB (default: quella del config)")
     parser.add_argument("--solo-sharpening", action="store_true",
                         help="solo download S2/S3/Landsat, sharpening e validazione (step p1_)")
     args = parser.parse_args()
@@ -62,7 +64,10 @@ def main():
         ok = True
         for step in steps:
             print(f"\n{'#' * 70}\n# {step}  ({date})\n{'#' * 70}", flush=True)
-            result = subprocess.run([sys.executable, str(SCRIPTS / f"{step}.py"), "--date", date])
+            cmd = [sys.executable, str(SCRIPTS / f"{step}.py"), "--date", date]
+            if args.altezza:
+                cmd += ["--altezza", args.altezza]
+            result = subprocess.run(cmd)
             if result.returncode != 0:
                 if step in OPTIONAL:
                     print(f"\n{step} non riuscito: proseguo senza (vedi messaggio sopra).")

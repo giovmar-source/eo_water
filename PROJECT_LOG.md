@@ -42,6 +42,11 @@ Repository: https://github.com/giovmar-source/eo_water (privato per ora). Cartel
 
 | 1 | 3e – Validazione multi-data: 10 date Landsat 2019–2025, r mediano 0,51 → 0,86, RMSE senza bias 3,10 → 1,99 K, migliorato 10/10 | fatto | 2026-11-09 |
 
+| 1 | 4a – Contesto climatico ERA5-Land 1991–2025 + verifica pioggia stazione GIRALDA: 2022 il più secco a terra (184 mm gen–lug); ERA5 sbaglia il 2023 | fatto | 2026-11-10 |
+| 1 | 4b – Variante altezza chioma (--altezza lai/coltura) con suffisso dei file | fatto | 2026-11-10 |
+| 1 | 4c – Serie 2022 contro 2023–2025 (20 date, --altezza lai): 18/20 complete; ET 2022 −42% (−1,6 mm/g), EF −0,30, CWSI 0,35 contro 0,05–0,14 | fatto (01/08/2022 sostituito dal 29/07: S3 senza dati) | 2026-11-11 |
+| 1 | 4d – Sensibilità all'altezza della chioma: ET 2022 −39% (LAI) contro −36% (mappa colturale); gradiente costiero in entrambe; bosco e frutteti NON robusto (−31% contro −41%) | fatto | 2026-11-11 |
+
 ## Decisioni
 
 | Data | Decisione | Motivazione |
@@ -94,15 +99,23 @@ Repository: https://github.com/giovmar-source/eo_water (privato per ora). Cartel
 | 2026-11-09 | Nuvole valutate sull'area (ritagli delle maschere COG), non sulla scena intera | La copertura di scena (110–185 km) scartava giorni limpidi sul Delta: da 1 a 33 giorni utilizzabili |
 | 2026-11-09 | Passaggio S3 'auto' più vicino all'ora di Landsat quando c'è Landsat | Simultaneità: la superficie si scalda di 2–3 °C/ora la mattina |
 | 2026-11-09 | Landsat scaricato intero con requests e ritagliato in locale (non più letto via HTTP con GDAL) | Su Windows la lettura GDAL via HTTP lasciava il processo appeso e bloccava run_chain |
+| 2026-11-10 | Anni di riferimento 2023, 2024, 2025 (non 2020–2021) | Scelti sulla pioggia misurata a terra; GIRALDA non ha dati prima del 2022; ERA5-Land indicava il 2023 come il più secco, la stazione come il più piovoso |
+| 2026-11-10 | Analisi principale con altezza dal LAI per tutti (--altezza lai), mappa colturale 2022 come sensibilità | Le colture ruotano: per un confronto tra anni la coerenza conta più della precisione sul singolo campo |
+| 2026-11-10 | WaPOR L1 (FAO, 300 m, decadale) come confronto indipendente dell'anomalia 2022 | Serie continua, modello diverso, riferimento noto |
+| 2026-11-11 | 01/08/2022 sostituito con 29/07/2022 | L'unico passaggio S3 del 01/08 non aveva pixel di temperatura sull'area |
+| 2026-11-11 | Non affermare che gli alberi hanno sofferto meno | Il risultato cambia da −31% a −41% con la variante dell'altezza |
 
 ## File prodotti
 
 - `environment.yml`, `check_env.py`, `.gitignore`, `PROJECT_LOG.md`, `.vscode/settings.json` (locale)
 - `config/step02_first_look.yaml`, `scripts/step02_download.py`, `scripts/step02_first_look.py`
-- `config/phase1_sharpening.yaml`, `scripts/p1_01_find_dates.py`, `outputs/tables/p1_coincident_dates.csv`, `outputs/tables/p3_03_validation_all_dates.csv`, `outputs/figures/p3_03_validation_all_dates.png`, `scripts/p1_02_download.py`, `scripts/p1_03_training_table.py`, `scripts/p1_04_models.py`, `scripts/p1_05_sharpen.py`, `scripts/p2_01_download_era5.py`, `scripts/p2_02_download_biophys_inputs.py`, `scripts/p2_03_biophysical.py`, `scripts/p2_04_tseb.py`, `scripts/p2_05_station_check.py`, `scripts/p2_06_download_cropmap.py`, `scripts/p2_07_water_stress.py`, `scripts/p3_01_ecostress_search.py`, `scripts/config_utils.py`, `scripts/run_chain.py`, `scripts/p3_02_compare_ecostress.py`, `scripts/p3_03_validation_summary.py`, `outputs/tables/p1_coincident_dates.csv`, `outputs/tables/p3_03_validation_all_dates.csv`, `outputs/figures/p3_03_validation_all_dates.png`, `outputs/tables/p3_01_ecostress_passes.csv`, `outputs/tables/p2_07_stress_by_crop.csv`, `outputs/tables/p2_07_stress_by_lai.csv`, `outputs/tables/p2_04_tseb_by_crop.csv`, `data/ancillary/stations/arpae_giralda_20220719.csv` (escluso da Git), `outputs/tables/p2_04_tseb_by_lai.csv`, `outputs/tables/p2_04_sensitivity.csv`
+- `config/phase1_sharpening.yaml`, `scripts/p1_01_find_dates.py`, `outputs/tables/p1_coincident_dates.csv`, `outputs/tables/p3_03_validation_all_dates.csv`, `outputs/figures/p3_03_validation_all_dates.png`, `scripts/p1_02_download.py`, `scripts/p1_03_training_table.py`, `scripts/p1_04_models.py`, `scripts/p1_05_sharpen.py`, `scripts/p2_01_download_era5.py`, `scripts/p2_02_download_biophys_inputs.py`, `scripts/p2_03_biophysical.py`, `scripts/p2_04_tseb.py`, `scripts/p2_05_station_check.py`, `scripts/p2_06_download_cropmap.py`, `scripts/p2_07_water_stress.py`, `scripts/p3_01_ecostress_search.py`, `scripts/config_utils.py`, `scripts/run_chain.py`, `scripts/p3_02_compare_ecostress.py`, `scripts/p3_03_validation_summary.py`, `scripts/p4_01_climate_context.py`, `scripts/p4_02_drought_comparison.py`, `outputs/tables/p4_01_climate_context.csv`, `outputs/tables/p1_coincident_dates.csv`, `outputs/tables/p3_03_validation_all_dates.csv`, `outputs/figures/p3_03_validation_all_dates.png`, `outputs/tables/p3_01_ecostress_passes.csv`, `outputs/tables/p2_07_stress_by_crop.csv`, `outputs/tables/p2_07_stress_by_lai.csv`, `outputs/tables/p2_04_tseb_by_crop.csv`, `data/ancillary/stations/arpae_giralda_20220719.csv` (escluso da Git), `outputs/tables/p2_04_tseb_by_lai.csv`, `outputs/tables/p2_04_sensitivity.csv`
 - `GUIDA_PERSONALE.md` (locale, esclusa da Git): spiegazioni, codice commentato, domande da colloquio. Va aggiornata a ogni step.
 
 ## Criticità aperte
+
+- **Gradiente costiero dell'anomalia 2022 — confermato da 3 prove indipendenti**: rapporto ET entroterra/costa 0,76 nel 2022 (tutte le date < 0,85) contro circa 1,00 negli altri anni; presente con entrambe le varianti dell'altezza; presente nel CWSI contestuale, che non usa Ta (da −0,06 sulla costa a +0,08 a 6–8 km). Resta da escludere una differenza di Ta costa–entroterra solo nel 2022 (controllo ERA5). Interpretazioni da verificare: falda vicino alle lagune; gestione delle prese irrigue dei consorzi.
+- La stazione GIRALDA ha buchi isolati di un'ora: ora riempiti per interpolazione (p2_05).
 
 - ~~Validazione a livello di campo su un giorno solo~~: risolto, 10 date Landsat 2019–2025 (r mediano 0,86). ECOSTRESS 2022 sul Delta è sfocato: va bene solo a scala di qualche centinaio di metri. L'ESI di ECOSTRESS (PT-JPL) non è confrontabile con il CWSI termico di TSEB.
 

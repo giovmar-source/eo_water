@@ -1,0 +1,20 @@
+Celle ERA5-Land con dati (terra): 34 su 72; le altre riempite con la cella di terra piu' vicina
+Salvato data/processed/p1_20240716/era5land_filled.nc
+Variabili: ['t2m', 'd2m', 'u10', 'v10', 'sp', 'ssrd', 'strd']
+Ore: da 2024-07-16 00:00:00 a 2024-07-17 23:00:00, griglia 8 x 9
+Il centro dell'area (44.95N, 12.35E) cade in una cella 'mare': uso i valori della cella di terra piu' vicina.
+
+Centro dell'area di analisi, ore 09-10 UTC del 16/07/2024:
+  Temperatura aria 2 m:         29.2 °C
+  Punto di rugiada:             22.7 °C  -> umidita' relativa   68%
+  Pressione di vapore:          27.6 hPa
+  Vento 10 m:                    1.2 m/s
+  Pressione al suolo:          1010.7 hPa
+  Radiazione solare (media):     791 W/m²
+  Radiazione infrarossa:         403 W/m²
+  Radiazione solare del giorno: 26.7 MJ/m²
+
+Controlli di plausibilita' (luglio, pianura padana, cielo sereno, meta' mattina):
+  aria 27-33 °C, radiazione solare 650-850 W/m², totale giornaliero 25-30 MJ/m².
+
+Temperatura dell'aria alle 10 UTC sulle celle di terra: da 29.0 °C (costa) a 33.5 °C (entroterra)

@@ -1,0 +1,30 @@
+Esempi: 537  |  Predittori: 12  |  LST: media 39.6 °C, deviazione std 2.25 K
+Blocchi spaziali da 5 km: 51
+
+Risultati (previsioni su dati mai visti dal modello):
+        modello validazione  RMSE_K  MAE_K  bias_K     R2
+          Media    spaziale   2.263  1.783   0.000 -0.011
+          Media     casuale   2.267  1.782   0.000 -0.014
+   Lineare NDVI    spaziale   1.744  1.357   0.006  0.400
+   Lineare NDVI     casuale   1.736  1.346   0.002  0.405
+  Lineare tutte    spaziale   1.656  1.259  -0.012  0.459
+  Lineare tutte     casuale   1.623  1.227   0.007  0.480
+Foresta casuale    spaziale   1.739  1.349   0.004  0.403
+Foresta casuale     casuale   1.684  1.293  -0.019  0.440
+
+Importanza dei predittori (aumento dell'RMSE in K se il predittore viene 'mescolato'):
+  NDMI   0.118
+  B02    0.111
+  B12    0.067
+  B04    0.041
+  NDVI   0.032
+  B05    0.010
+  B06    0.006
+  B11    0.006
+  B08    0.004
+  B07    0.003
+  B03   -0.004
+  B8A   -0.018
+
+Figura: outputs/20240716/figures/p1_04_models.png
+Tabella: outputs/20240716/tables/p1_04_model_scores.csv

@@ -185,7 +185,9 @@ def run_tseb(Tr_K, lai, mt, sza, cfg):
 
     # 3. Rugosita' aerodinamica: quanto la superficie "frena" il vento.
     #    z_0M = rugosita' per la quantita' di moto, d_0 = altezza di spostamento del piano zero.
-    h_C = canopy_height(lai, cfg, mt.get("crop"))
+    # Altezza: per coltura (mappa 2022) oppure solo dal LAI (stessa regola per tutti)
+    crop_for_h = mt.get("crop") if cfg.get("height_source", "coltura") == "coltura" else None
+    h_C = canopy_height(lai, cfg, crop_for_h)
     z_0M, d_0 = res.calc_roughness(
         lai, h_C, w_C=np.ones_like(lai), landcover=np.full_like(lai, res.CROP))
     z_0M = np.maximum(z_0M, cfg.get("z0_soil_m", 0.01))   # mai meno rugoso del suolo nudo
@@ -258,9 +260,11 @@ def sensitivity(Tr, lai, mt, sza, cfg, n=30000):
     L = np.maximum(lai.ravel()[idx], 0.01)
     bins = [0, 0.5, 1, 2, 3, 8]
     rows = []
-    variants = {"altezza da LAI, senza f_g": dict(cfg, heights_above_d0=False),
-                "altezza da coltura, senza f_g": cfg,
-                "altezza da coltura, con f_g": cfg}
+    src = cfg.get("height_source", "coltura")
+    variants = {"altezza da LAI, quote fisse, senza f_g": dict(cfg, heights_above_d0=False,
+                                                                height_source="lai"),
+                f"altezza {src}, senza f_g": cfg,
+                f"altezza {src}, con f_g": cfg}
     for vname, vcfg in variants.items():
         for dT in cfg["sens_ta_offsets_K"]:
             # dT e' in piu' rispetto alla correzione gia' applicata (ta_offset_K)
@@ -312,6 +316,7 @@ def run_case(name, Tr, lai, mt, sza, cfg):
 def main():
     cfg_all = load_config()
     cfg = cfg_all["tseb"]
+    sfx = cfg["run_suffix"]                  # "" (altezza per coltura) oppure "_hlai"
     a = cfg_all["analysis_aoi"]
     bbox = (a["west"], a["south"], a["east"], a["north"])
     crs = f"EPSG:{cfg_all['download']['output_crs']}"
@@ -324,7 +329,7 @@ def main():
 
     date = cfg_all["reference_date"]
     t_utc = f"{date} {cfg['overpass_utc']}"
-    log(f"TSEB-PT - {a['name']} - {t_utc} UTC")
+    log(f"TSEB-PT - {a['name']} - {t_utc} UTC - altezza della chioma: {cfg['height_source']}")
 
     # --- Superficie ---
     Tr = read_tif(proc / cfg["lst_file"], bbox, crs)
@@ -387,7 +392,7 @@ def main():
     # --- Sensibilita' a temperatura dell'aria e altezza della chioma (campione di pixel) ---
     log("\nSensibilita' (30.000 pixel a caso): ET mediana (mm/g) per classe di LAI")
     sens = sensitivity(Tr_v, lai_v, mt, sza, cfg)
-    sens.to_csv(tab_dir / "p2_04_sensitivity.csv")
+    sens.to_csv(tab_dir / f"p2_04_sensitivity{sfx}.csv")
     log(sens.to_string())
 
     # --- Salvataggio GeoTIFF ---
@@ -395,8 +400,8 @@ def main():
               "LE_C", "LE_S", "LE_C_pot", "T_ratio", "f_g", "h_C"):
         da = Tr.copy(data=maps[k].astype("float32"))
         da.attrs, da.encoding, da.name = {}, {}, k
-        as_raster(da, crs).rio.to_raster(proc / f"tseb_{k.lower()}.tif", compress="deflate")
-    log(f"\nGeoTIFF salvati in {proc.relative_to(PROJECT_ROOT)}/tseb_*.tif")
+        as_raster(da, crs).rio.to_raster(proc / f"tseb_{k.lower()}{sfx}.tif", compress="deflate")
+    log(f"\nGeoTIFF salvati in {proc.relative_to(PROJECT_ROOT)}/tseb_*{sfx}.tif")
 
     # --- Controlli di plausibilita' ---
     valid = np.isfinite(maps["LE"])
@@ -421,7 +426,7 @@ def main():
         H=("H", "median"), LE=("LE", "median"), EF=("EF", "median"),
         ET_mm=("ET_day", "median"), ET_p10=("ET_day", lambda s: s.quantile(0.1)),
         ET_p90=("ET_day", lambda s: s.quantile(0.9)), ET_biopar_mm=("ET_day_biopar", "median"))
-    tab.round(2).to_csv(tab_dir / "p2_04_tseb_by_lai.csv")
+    tab.round(2).to_csv(tab_dir / f"p2_04_tseb_by_lai{sfx}.csv")
 
     # Statistiche per coltura (le classi principali)
     names = {int(k): v for k, v in cfg_all["cropmap"]["legend"].items()}
@@ -434,7 +439,7 @@ def main():
         ET_p90=("ET_day", lambda s: s.quantile(0.9)),
         LE0_pct=("ET_day", lambda s: 100 * (s < 0.05).mean()))
     by_crop = by_crop[by_crop["ettari"] > 50].sort_values("ettari", ascending=False).round(2)
-    by_crop.to_csv(tab_dir / "p2_04_tseb_by_crop.csv")
+    by_crop.to_csv(tab_dir / f"p2_04_tseb_by_crop{sfx}.csv")
     log("\nMediane per coltura (EUCROPMAP 2022, classi > 50 ha):")
     log(by_crop.to_string())
     log("\nMediane per classe di LAI:")
@@ -476,10 +481,10 @@ def main():
     ax.set_title("ET contro LAI")
     ax.legend(loc="upper left")
     fig.suptitle(f"TSEB-PT a 20 m - Delta del Po - {date}", fontsize=14)
-    fig.savefig(fig_dir / "p2_04_tseb.png", dpi=150)
-    log(f"Figura: {(fig_dir / 'p2_04_tseb.png').relative_to(PROJECT_ROOT)}")
+    fig.savefig(fig_dir / f"p2_04_tseb{sfx}.png", dpi=150)
+    log(f"Figura: {(fig_dir / f'p2_04_tseb{sfx}.png').relative_to(PROJECT_ROOT)}")
 
-    (PROJECT_ROOT / cfg_all["paths"]["summaries"] / "p2_04_summary.txt").write_text(
+    (PROJECT_ROOT / cfg_all["paths"]["summaries"] / f"p2_04_summary{sfx}.txt").write_text(
         "\n".join(LINES) + "\n", encoding="utf-8")
 
 

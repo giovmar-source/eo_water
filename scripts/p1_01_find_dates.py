@@ -22,9 +22,11 @@ Output:
   outputs/tables/p1_coincident_dates.csv  (tutti i candidati con la frazione limpida sull'area)
 
 Come eseguirlo:
-    python scripts/p1_01_find_dates.py
+    python scripts/p1_01_find_dates.py                                   # con Landsat (validazione)
+    python scripts/p1_01_find_dates.py --senza-landsat --mesi 6 8        # solo S2 + S3 (serie temporale)
 """
 
+import argparse
 import time
 from pathlib import Path
 
@@ -93,12 +95,21 @@ def s2_clear_fraction(items, bbox):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--senza-landsat", action="store_true",
+                        help="cerca solo giorni con S2 + S3 sereni (per la serie temporale)")
+    parser.add_argument("--mesi", nargs=2, type=int, default=None, help="es. --mesi 6 8")
+    parser.add_argument("--anni", nargs="+", type=int, default=None, help="es. --anni 2021 2022")
+    args, _ = parser.parse_known_args()
+
     cfg = load_config(verbose=False)
     ds = cfg["date_search"]
     aoi = cfg["training_aoi"]
     bbox = [aoi["west"], aoi["south"], aoi["east"], aoi["north"]]
     cat = cfg["catalogs"]
-    m0, m1 = ds["months"]
+    m0, m1 = args.mesi or ds["months"]
+    years = args.anni or ds["years"]
+    no_ls = args.senza_landsat
 
     pc = Client.open(cat["landsat_stac"], modifier=planetary_computer.sign_inplace,
                      stac_io=StacApiIO(max_retries=RETRY))
@@ -106,23 +117,27 @@ def main():
 
     # --- Fase 1: cataloghi, un anno alla volta (richieste piu' piccole) ---
     cand = []
-    for year in ds["years"]:
+    for year in years:
         start = f"{year}-{m0:02d}-01"
         end = (pd.Timestamp(f"{year}-{m1:02d}-01") + pd.offsets.MonthEnd(1)).strftime("%Y-%m-%d")
         print(f"\n{year}: cerco Landsat, Sentinel-2, Sentinel-3 ...", flush=True)
-        ls = search(pc, cat["landsat_collection"], bbox, start, end)
-        if ls.empty:
-            continue
-        # Solo Landsat 8 e 9 (il 7 ha un difetto di acquisizione dal 2003)
-        ls = ls[ls["platform"].isin(cat["landsat_platforms"])]
-        ls = ls[ls["cloud"] <= ds["max_cloud_landsat_scene"]]
+        if no_ls:
+            ls = pd.DataFrame(columns=["item", "datetime_utc", "date", "platform", "cloud"])
+        else:
+            ls = search(pc, cat["landsat_collection"], bbox, start, end)
+            if ls.empty:
+                continue
+            # Solo Landsat 8 e 9 (il 7 ha un difetto di acquisizione dal 2003)
+            ls = ls[ls["platform"].isin(cat["landsat_platforms"])]
+            ls = ls[ls["cloud"] <= ds["max_cloud_landsat_scene"]]
         s2 = search(pc, cat["s2_collection_pc"], bbox, start, end)
         s2 = s2[s2["cloud"] <= ds["max_cloud_s2_scene"]]
         time.sleep(2)                                     # gentilezza verso il server CDSE
         s3 = search(cdse, cat["s3_collection"], bbox, start, end)
         h0, h1 = ds["s3_day_hours_utc"]
         s3 = s3[(s3["datetime_utc"].dt.hour >= h0) & (s3["datetime_utc"].dt.hour < h1)]
-        days = sorted(set(ls["date"]) & set(s2["date"]) & set(s3["date"]))
+        days = sorted(set(s2["date"]) & set(s3["date"]) if no_ls
+                      else set(ls["date"]) & set(s2["date"]) & set(s3["date"]))
         print(f"  Landsat {ls['date'].nunique()} giorni, S2 {s2['date'].nunique()}, "
               f"S3 diurno {s3['date'].nunique()} -> in comune {len(days)}")
         for d in days:
@@ -133,7 +148,7 @@ def main():
     rows = []
     for d, ls_d, s2_d, s3_d in cand:
         try:
-            f_ls = landsat_clear_fraction(ls_d["item"], bbox)
+            f_ls = 1.0 if no_ls else landsat_clear_fraction(ls_d["item"], bbox)
             f_s2 = s2_clear_fraction(s2_d["item"], bbox) if f_ls >= ds["min_clear_fraction"] else np.nan
         except Exception as error:                        # un file irraggiungibile non ferma tutto
             print(f"  {d:%Y-%m-%d}: errore di lettura ({error.__class__.__name__}), salto")
@@ -141,18 +156,19 @@ def main():
         ok = f_ls >= ds["min_clear_fraction"] and f_s2 >= ds["min_clear_fraction"]
         rows.append({
             "data": f"{d:%Y-%m-%d}",
-            "landsat": "+".join(sorted(ls_d["platform"].unique())),
-            "landsat_ora": ls_d["datetime_utc"].min().strftime("%H:%M"),
+            "landsat": "-" if no_ls else "+".join(sorted(ls_d["platform"].unique())),
+            "landsat_ora": "-" if no_ls else ls_d["datetime_utc"].min().strftime("%H:%M"),
             "s3_ore": ", ".join(sorted(s3_d["datetime_utc"].dt.strftime("%H:%M").unique())),
-            "limpido_landsat": round(f_ls, 3),
+            "limpido_landsat": np.nan if no_ls else round(f_ls, 3),
             "limpido_s2": round(f_s2, 3) if np.isfinite(f_s2) else np.nan,
             "utilizzabile": ok,
         })
-        print(f"  {d:%Y-%m-%d}: Landsat limpido {f_ls:.0%}, S2 limpido "
+        print(f"  {d:%Y-%m-%d}: Landsat limpido {'-' if no_ls else f'{f_ls:.0%}'}, S2 limpido "
               f"{'-' if not np.isfinite(f_s2) else f'{f_s2:.0%}'}  {'OK' if ok else ''}")
 
     table = pd.DataFrame(rows)
-    out = PROJECT_ROOT / cfg["paths"]["tables_common"] / "p1_coincident_dates.csv"
+    name = "p1_dates_s2_s3.csv" if no_ls else "p1_coincident_dates.csv"
+    out = PROJECT_ROOT / cfg["paths"]["tables_common"] / name
     out.parent.mkdir(parents=True, exist_ok=True)
     table.to_csv(out, index=False)
     good = table[table["utilizzabile"]] if not table.empty else table

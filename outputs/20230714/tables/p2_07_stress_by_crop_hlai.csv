@@ -1,0 +1,11 @@
+coltura,ettari,CWSI_TSEB_mediana,TSEB_stress>0.3_%,CWSI_ctx_mediana,ctx_stress>0.3_%,Spearman
+Frumento tenero,3056.84,0.63,68.97,0.52,82.99,0.55
+Mais,2894.16,0.87,78.71,0.57,84.47,0.61
+Bosco e arbusti (incl. colture permanenti),922.8,0.56,73.45,0.49,75.29,0.71
+Foraggere,812.4,0.32,52.57,0.49,76.4,0.58
+Prati,762.48,0.0,29.02,0.41,65.63,0.56
+Soia,608.24,0.48,58.77,0.5,83.32,0.57
+altro,426.08,0.32,54.27,0.73,96.03,0.6
+Girasole,272.92,0.63,65.88,0.56,86.09,0.58
+Legumi secchi,155.2,0.95,73.69,0.64,87.04,0.67
+Frumento duro,82.08,0.79,78.7,0.56,95.32,0.25

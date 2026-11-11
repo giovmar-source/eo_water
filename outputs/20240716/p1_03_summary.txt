@@ -1,0 +1,33 @@
+Sentinel-2: griglia 2066 x 2039 pixel da 20 m, terra limpida 53%
+Sentinel-3: uso il passaggio delle 09:45 UTC (disponibili: 09:45, 21:08)
+Sentinel-3: 1044 pixel con LST, 867 senza nuvole
+
+Sfocatura PSF di Sentinel-2: sigma 500 m; aggrego sulla griglia di Sentinel-3 ...
+
+Pixel da 1 km nella griglia: 1722, con LST valida: 867
+Pixel utilizzabili al variare della soglia di frazione valida:
+  >= 50%: 729
+  >= 70%: 654
+  >= 80%: 612
+  >= 90%: 537
+  >= 100%: 259
+
+Soglia scelta 90% -> 537 pixel di addestramento
+Predittori per pixel: 12 -> 45 esempi per predittore
+
+Correlazione di Spearman tra LST e predittori (segno atteso: NDVI e NDMI negativi):
+  NDVI  -0.62
+  NDMI  -0.61
+  B08   -0.38
+  B07   -0.37
+  B8A   -0.34
+  B06   -0.14
+  B11   +0.51
+  B03   +0.57
+  B05   +0.57
+  B02   +0.60
+  B04   +0.61
+  B12   +0.62
+
+Tabella salvata: data\processed\p1_20240716\training_table.csv
+Figura salvata: outputs/20240716/figures/p1_03_training_overview.png

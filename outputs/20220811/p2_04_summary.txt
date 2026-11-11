@@ -1,4 +1,4 @@
-TSEB-PT - po_delta_porto_tolle - 2022-08-11 10:01 UTC
+TSEB-PT - po_delta_porto_tolle - 2022-08-11 10:01 UTC - altezza della chioma: coltura
 Griglia: 804 x 815 pixel a 20 m
 Zenit solare medio: 34.3 gradi
 Meteo medio sull'AOI all'ora del passaggio:
@@ -17,17 +17,17 @@ Sensibilita' (LAI BIOPAR):
   [BIOPAR] pixel senza soluzione (flag >= 252): 1
 
 Sensibilita' (30.000 pixel a caso): ET mediana (mm/g) per classe di LAI
-                                           LAI -0.001-0.5  LAI 0.5-1  LAI 1-2  LAI 2-3  LAI 3-8  LE=0 su LAI>3 (%)
-variante                      dTa_extra_K                                                                         
-altezza da LAI, senza f_g     -1                     0.60       1.64     1.93     1.73     0.00               75.5
-                               0                     1.01       2.14     2.89     3.03     0.00               50.7
-                               1                     1.31       2.50     3.53     4.24     2.00               27.4
-altezza da coltura, senza f_g -1                     0.95       1.88     2.31     2.44     1.21               28.8
-                               0                     1.23       2.28     3.11     3.53     2.45               13.1
-                               1                     1.49       2.61     3.65     4.56     3.59                2.9
-altezza da coltura, con f_g   -1                     0.71       1.85     2.33     2.47     1.20               28.6
-                               0                     1.00       2.25     3.08     3.55     2.42               13.1
-                               1                     1.26       2.58     3.59     4.48     3.63                2.8
+                                                    LAI -0.001-0.5  LAI 0.5-1  LAI 1-2  LAI 2-3  LAI 3-8  LE=0 su LAI>3 (%)
+variante                               dTa_extra_K                                                                         
+altezza da LAI, quote fisse, senza f_g -1                     0.60       1.64     1.93     1.73     0.00               75.5
+                                        0                     1.01       2.14     2.89     3.03     0.00               50.7
+                                        1                     1.31       2.50     3.53     4.24     2.00               27.4
+altezza coltura, senza f_g             -1                     0.95       1.88     2.31     2.44     1.21               28.8
+                                        0                     1.23       2.28     3.11     3.53     2.45               13.1
+                                        1                     1.49       2.61     3.65     4.56     3.59                2.9
+altezza coltura, con f_g               -1                     0.71       1.85     2.33     2.47     1.20               28.6
+                                        0                     1.00       2.25     3.08     3.55     2.42               13.1
+                                        1                     1.26       2.58     3.59     4.48     3.63                2.8
 
 GeoTIFF salvati in data\processed\p1_20220811/tseb_*.tif
 

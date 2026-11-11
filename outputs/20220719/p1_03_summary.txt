@@ -30,4 +30,4 @@ Correlazione di Spearman tra LST e predittori (segno atteso: NDVI e NDMI negativ
   B12   +0.66
 
 Tabella salvata: data\processed\p1_20220719\training_table.csv
-Figura salvata: outputs/figures/p1_03_training_overview.png
+Figura salvata: outputs/20220719/figures/p1_03_training_overview.png

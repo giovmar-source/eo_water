@@ -1,0 +1,9 @@
+Nessun riferimento ad alta risoluzione (ne' Landsat ne' ECOSTRESS): solo sharpening.
+
+=== Foresta casuale ===
+Previsione a 20 m: 1932057 pixel
+Residui a 1 km: media -0.24 K, deviazione std 2.50 K
+
+=== Lineare tutte ===
+Previsione a 20 m: 1932057 pixel
+Residui a 1 km: media -0.44 K, deviazione std 2.49 K

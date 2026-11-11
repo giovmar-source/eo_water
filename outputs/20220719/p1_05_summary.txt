@@ -8,7 +8,7 @@ Residui a 1 km: media +0.29 K, deviazione std 2.81 K
 Previsione a 20 m: 1956250 pixel
 Residui a 1 km: media -0.43 K, deviazione std 2.66 K
 
-Validazione con Landsat 9 a 100 m (stesse celle per tutti i metodi):
+Validazione con Landsat a 100 m (stesse celle per tutti i metodi):
                                      metodo     n  bias_K  RMSE_K  RMSE_senza_bias_K     r
 Sentinel-3 interpolato (nessuno sharpening) 68316  -1.442   4.269              4.018 0.499
          Foresta casuale (senza correzione) 68316  -2.014   3.174              2.453 0.860
@@ -17,9 +17,9 @@ Sentinel-3 interpolato (nessuno sharpening) 68316  -1.442   4.269              4
              Lineare tutte (con correzione) 68316  -1.431   3.375              3.057 0.847
 
 Variabilita' dentro ogni pixel da 1 km (deviazione std dei valori a 100 m, mediana):
-  Landsat (vera):            3.21 K
+  Landsat (vera):           3.21 K
   Foresta casuale           2.87 K  (rapporto ricostruita/vera 89%)
   Lineare tutte             4.47 K  (rapporto ricostruita/vera 139%)
 
-Mappe: outputs/figures/p1_05_sharpening_maps.png
-Confronto: outputs/figures/p1_05_validation_scatter.png
+Mappe: outputs/20220719/figures/p1_05_sharpening_maps.png
+Confronto: outputs/20220719/figures/p1_05_validation_scatter.png

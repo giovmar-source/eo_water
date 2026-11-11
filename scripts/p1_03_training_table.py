@@ -176,6 +176,13 @@ def main():
 
     keep = has_lst & (table["valid_fraction"] >= tr["min_valid_fraction"]) & table["NDVI"].notna()
     training = table[keep].reset_index(drop=True)
+    if len(training) < 50:
+        # Senza abbastanza pixel Sentinel-3 validi non si puo' addestrare nulla: meglio fermarsi
+        # con un messaggio chiaro che proseguire con una tabella vuota.
+        (PROJECT_ROOT / cfg["paths"]["summaries"] / "p1_03_summary.txt").write_text(
+            "\n".join(LINES), encoding="utf-8")
+        raise SystemExit(f"Solo {len(training)} pixel Sentinel-3 utilizzabili il {cfg['reference_date']} "
+                         "(nuvole, bordo della striscia o dati mancanti): data non utilizzabile.")
     log(f"\nSoglia scelta {tr['min_valid_fraction']:.0%} -> {len(training)} pixel di addestramento")
     log(f"Predittori per pixel: {len(REFLECTANCE_BANDS) + 2} -> "
         f"{len(training) / (len(REFLECTANCE_BANDS) + 2):.0f} esempi per predittore")

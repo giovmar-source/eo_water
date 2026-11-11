@@ -91,17 +91,18 @@ def contextual_cwsi(T, lai, mask, bins, p_wet, p_dry):
 def main():
     cfg_all = load_config()
     cfg, scfg = cfg_all["tseb"], cfg_all["stress"]
+    sfx = cfg["run_suffix"]                  # stessa variante di TSEB (altezza per coltura o dal LAI)
     proc = PROJECT_ROOT / cfg_all["paths"]["processed"]
     anc = PROJECT_ROOT / cfg_all["paths"]["aux"]
     fig_dir = PROJECT_ROOT / cfg_all["paths"]["figures"]
     tab_dir = PROJECT_ROOT / cfg_all["paths"]["tables"]
 
     # --- Input: tutti sulla griglia dei risultati TSEB (area di analisi, 20 m) ---
-    ratio = read(proc / "tseb_t_ratio.tif")
+    ratio = read(proc / f"tseb_t_ratio{sfx}.tif")
     grid = ratio
     lai = read(proc / cfg["lai_file"], grid).values
     Tr = read(proc / cfg["lst_file"], grid).values
-    fg = read(proc / "tseb_f_g.tif", grid).values
+    fg = read(proc / f"tseb_f_g{sfx}.tif", grid).values
     crop = read(anc / cfg["cropmap_file"], grid).values
     ratio = ratio.values
 
@@ -144,8 +145,8 @@ def main():
     by_lai = df.groupby("classe_LAI", observed=True).apply(summary).round(2)
     by_crop = df.groupby("coltura").apply(summary)
     by_crop = by_crop[by_crop["ettari"] > 50].sort_values("ettari", ascending=False).round(2)
-    by_lai.to_csv(tab_dir / "p2_07_stress_by_lai.csv")
-    by_crop.to_csv(tab_dir / "p2_07_stress_by_crop.csv")
+    by_lai.to_csv(tab_dir / f"p2_07_stress_by_lai{sfx}.csv")
+    by_crop.to_csv(tab_dir / f"p2_07_stress_by_crop{sfx}.csv")
     log("\nPer classe di LAI:")
     log(by_lai.to_string())
     log("\nPer coltura (classi > 50 ha):")
@@ -156,7 +157,7 @@ def main():
         da = grid.copy(data=arr.astype("float32"))
         da.attrs, da.encoding, da.name = {}, {}, name
         da.rio.write_nodata(np.nan, encoded=False).rio.to_raster(
-            proc / f"{name}.tif", compress="deflate")
+            proc / f"{name}{sfx}.tif", compress="deflate")
 
     # --- Figura ---
     fig, axs = plt.subplots(2, 2, figsize=(14, 12), constrained_layout=True)
@@ -188,10 +189,10 @@ def main():
     ax.set_ylabel(f"% della superficie con CWSI TSEB > {thr}")
     ax.set_title("Superficie stressata per coltura (TSEB; rho = accordo con il contestuale)")
     fig.suptitle(f"Stress idrico - Delta del Po - {cfg_all['reference_date']}", fontsize=14)
-    fig.savefig(fig_dir / "p2_07_water_stress.png", dpi=150)
-    log(f"Figura: {cfg_all['paths']['figures']}/p2_07_water_stress.png")
+    fig.savefig(fig_dir / f"p2_07_water_stress{sfx}.png", dpi=150)
+    log(f"Figura: {cfg_all['paths']['figures']}/p2_07_water_stress{sfx}.png")
 
-    (PROJECT_ROOT / cfg_all["paths"]["summaries"] / "p2_07_summary.txt").write_text("\n".join(LINES) + "\n",
+    (PROJECT_ROOT / cfg_all["paths"]["summaries"] / f"p2_07_summary{sfx}.txt").write_text("\n".join(LINES) + "\n",
                                                                  encoding="utf-8")
 
 
