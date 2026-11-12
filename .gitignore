@@ -37,3 +37,7 @@ GUIDA_PERSONALE*.md
 
 # --- File creati da librerie (earthaccess/OPeNDAP) ---
 .dodsrc
+
+# Report in italiano: solo per uso personale, non pubblico
+reports/*_it.*
+reports/figures/*_it.png
