@@ -54,7 +54,7 @@ flowchart LR
    - **Residual correction:** this keeps the 1 km Sentinel-3 mean, so only sub-kilometre detail is added.
 
    Model selection uses **spatial block cross-validation** (5 km blocks).
-2. **Biophysics.** LAI, FCOVER and FAPAR come from the ESA SNAP neural network (Weiss & Baret v2.1), re-implemented in NumPy. The green fraction f_g = FAPAR/FIPAR stops stubble from "transpiring".
+2. **Biophysics.** LAI, FCOVER and FAPAR come from the ESA SNAP neural network (Weiss & Baret 2016; SNAP coefficients v2.1), re-implemented in NumPy. The green fraction f_g = FAPAR/FIPAR stops stubble from "transpiring".
 3. **Energy balance.** TSEB-PT (Norman et al. 1995; pyTSEB) gives Rn, H, LE and G for soil and canopy separately, and daily ET via the LE/solar-radiation ratio.
    - **ERA5-Land air temperature** is corrected with an ARPAE ground station. ERA5 was 2.1 K too cool at overpass on 19 July 2022.
    - **Canopy height:** two variants, from LAI (consistent across years) or from the 2022 crop map. Both are run as a sensitivity test.
@@ -125,15 +125,17 @@ Credentials are never stored in the repository. All choices (areas, thresholds, 
 | ECOSTRESS v002 | NASA LP DAAC | NASA open data |
 | WaPOR v3 L1 AETI | FAO | see FAO WaPOR terms of use |
 
+**Code licence:** MIT (see [`LICENSE`](LICENSE)). The licence covers the code only; each dataset keeps its own terms listed above.
+
 Raw and processed rasters are not in the repository (they are large and re-downloadable). Tables, figures and run summaries are in `outputs/`.
 
 ## Main references
 
-- Norman, Kustas & Humes (1995). Source approach for estimating soil and vegetation energy fluxes from directional radiometric surface temperature. *Agric. For. Meteorol.*
-- Guzinski & Nieto (2019). Evaluating the feasibility of using Sentinel-2 and Sentinel-3 satellites for high-resolution evapotranspiration estimations. *Remote Sens. Environ.*
-- Weiss & Baret. S2ToolBox Level 2 products: LAI, FAPAR, FCOVER, v2.1 (ESA SNAP ATBD).
-- d'Andrimont et al. (2021). From parcel to continental scale: a first European crop type map based on Sentinel-1 and LUCAS Copernicus in-situ observations. *Remote Sens. Environ.* (EUCROPMAP)
-- Straffelini & Tarolli (2023). Climate change-induced aridity is affecting agriculture in Northeast Italy. *Agric. Syst.*
+- Norman, J.M., Kustas, W.P. & Humes, K.S. (1995). Source approach for estimating soil and vegetation energy fluxes in observations of directional radiometric surface temperature. *Agricultural and Forest Meteorology* 77(3–4), 263–293. https://doi.org/10.1016/0168-1923(95)02265-Y
+- Guzinski, R. & Nieto, H. (2019). Evaluating the feasibility of using Sentinel-2 and Sentinel-3 satellites for high-resolution evapotranspiration estimations. *Remote Sensing of Environment* 221, 157–172. https://doi.org/10.1016/j.rse.2018.11.019
+- Weiss, M. & Baret, F. (2016). *S2ToolBox Level 2 products: LAI, FAPAR, FCOVER*, Version 1.1. Algorithm Theoretical Basis Document, INRA / ESA (SNAP). Network coefficients: SNAP `s2tbx-biophysical` auxdata, version 2.1.
+- d'Andrimont, R., Verhegghen, A., Lemoine, G., Kempeneers, P., Meroni, M. & van der Velde, M. (2021). From parcel to continental scale – A first European crop type map based on Sentinel-1 and LUCAS Copernicus in-situ observations. *Remote Sensing of Environment* 266, 112708. https://doi.org/10.1016/j.rse.2021.112708 (EUCROPMAP)
+- Straffelini, E. & Tarolli, P. (2023). Climate change-induced aridity is affecting agriculture in Northeast Italy. *Agricultural Systems* 208, 103647. https://doi.org/10.1016/j.agsy.2023.103647
 
 ---
 
