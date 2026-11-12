@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "eo_water: field-scale evapotranspiration and drought stress from Sentinel-2 and Sentinel-3 (Po Delta, 2022)"
+authors:
+  - family-names: Marino
+    given-names: Giovanni
+version: 1.0.0
+date-released: 2026-11-12
+license: MIT
+repository-code: "https://github.com/giovmar-source/eo_water"
+keywords:
+  - evapotranspiration
+  - thermal sharpening
+  - TSEB
+  - Sentinel-2
+  - Sentinel-3
+  - drought
+  - Po Delta
+abstract: >-
+  Open-source chain that sharpens Sentinel-3 land surface temperature to 20 m with
+  Sentinel-2, runs the TSEB-PT energy balance model and maps daily evapotranspiration
+  and crop water stress. Validated on 10 Landsat dates (median r 0.51 to 0.86) and
+  applied to the 2022 drought in the Po Delta (summer ET -28 to -39 % vs 2023-2025).

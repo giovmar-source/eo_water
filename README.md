@@ -6,6 +6,8 @@ sharpening Sentinel-3 land surface temperature (1 km) with Sentinel-2, and feedi
 two-source energy balance model (TSEB). The method is validated on 10 independent Landsat
 dates (2019–2025) and applied to the 2022 drought versus 2023–2025.
 
+**Full technical report:** [reports/report_en.md](reports/report_en.md) ([PDF](reports/report_en.pdf), 7 pages).
+
 *Study area: Po Delta (Porto Tolle, Italy), ~18,000 ha of farmland. Phase 1 of a larger project;
 Phase 2 will add Sentinel-1 InSAR ground deformation.*
 
