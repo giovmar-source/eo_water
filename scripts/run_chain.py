@@ -43,6 +43,8 @@ def main():
                         help="prefisso dell'ultimo step da eseguire, es. p1_05")
     parser.add_argument("--altezza", choices=["coltura", "lai"], default=None,
                         help="altezza della chioma in TSEB (default: quella del config)")
+    parser.add_argument("--ta-fisso", type=float, default=None,
+                        help="stessa correzione dell'aria (K) per tutte le date: test di sensibilita'")
     parser.add_argument("--solo-sharpening", action="store_true",
                         help="solo download S2/S3/Landsat, sharpening e validazione (step p1_)")
     args = parser.parse_args()
@@ -67,6 +69,8 @@ def main():
             cmd = [sys.executable, str(SCRIPTS / f"{step}.py"), "--date", date]
             if args.altezza:
                 cmd += ["--altezza", args.altezza]
+            if args.ta_fisso is not None:
+                cmd += ["--ta-fisso", str(args.ta_fisso)]
             result = subprocess.run(cmd)
             if result.returncode != 0:
                 if step in OPTIONAL:

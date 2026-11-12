@@ -47,6 +47,9 @@ Repository: https://github.com/giovmar-source/eo_water (privato per ora). Cartel
 | 1 | 4c – Serie 2022 contro 2023–2025 (20 date, --altezza lai): 18/20 complete; ET 2022 −42% (−1,6 mm/g), EF −0,30, CWSI 0,35 contro 0,05–0,14 | fatto (01/08/2022 sostituito dal 29/07: S3 senza dati) | 2026-11-11 |
 | 1 | 4d – Sensibilità all'altezza della chioma: ET 2022 −39% (LAI) contro −36% (mappa colturale); gradiente costiero in entrambe; bosco e frutteti NON robusto (−31% contro −41%) | fatto | 2026-11-11 |
 
+| 1 | 4e – WaPOR L1 2018–2025: 2022 −6% (rif) / −9% (tutti); r 0,47 a 300 m | fatto | 2026-11-12 |
+| 1 | 4f – Test stessa correzione Ta (+2 K): ET 2022 −28% (contro −39%); gradiente invariato (0,81); CWSI 2022 simile al 2023; LAI 2022 −18% | fatto | 2026-11-12 |
+
 ## Decisioni
 
 | Data | Decisione | Motivazione |
@@ -104,17 +107,21 @@ Repository: https://github.com/giovmar-source/eo_water (privato per ora). Cartel
 | 2026-11-10 | WaPOR L1 (FAO, 300 m, decadale) come confronto indipendente dell'anomalia 2022 | Serie continua, modello diverso, riferimento noto |
 | 2026-11-11 | 01/08/2022 sostituito con 29/07/2022 | L'unico passaggio S3 del 01/08 non aveva pixel di temperatura sull'area |
 | 2026-11-11 | Non affermare che gli alberi hanno sofferto meno | Il risultato cambia da −31% a −41% con la variante dell'altezza |
+| 2026-11-12 | Risultato riportato come intervallo −28% / −39% | Dipende dalla correzione Ta (stazione data per data o fissa); il −28% è la stima prudente |
+| 2026-11-12 | CWSI assoluto da trattare con prudenza nel confronto tra anni | Molto sensibile alla correzione Ta (2022 da 0,31 a 0,23) |
 
 ## File prodotti
 
 - `environment.yml`, `check_env.py`, `.gitignore`, `PROJECT_LOG.md`, `.vscode/settings.json` (locale)
 - `config/step02_first_look.yaml`, `scripts/step02_download.py`, `scripts/step02_first_look.py`
-- `config/phase1_sharpening.yaml`, `scripts/p1_01_find_dates.py`, `outputs/tables/p1_coincident_dates.csv`, `outputs/tables/p3_03_validation_all_dates.csv`, `outputs/figures/p3_03_validation_all_dates.png`, `scripts/p1_02_download.py`, `scripts/p1_03_training_table.py`, `scripts/p1_04_models.py`, `scripts/p1_05_sharpen.py`, `scripts/p2_01_download_era5.py`, `scripts/p2_02_download_biophys_inputs.py`, `scripts/p2_03_biophysical.py`, `scripts/p2_04_tseb.py`, `scripts/p2_05_station_check.py`, `scripts/p2_06_download_cropmap.py`, `scripts/p2_07_water_stress.py`, `scripts/p3_01_ecostress_search.py`, `scripts/config_utils.py`, `scripts/run_chain.py`, `scripts/p3_02_compare_ecostress.py`, `scripts/p3_03_validation_summary.py`, `scripts/p4_01_climate_context.py`, `scripts/p4_02_drought_comparison.py`, `outputs/tables/p4_01_climate_context.csv`, `outputs/tables/p1_coincident_dates.csv`, `outputs/tables/p3_03_validation_all_dates.csv`, `outputs/figures/p3_03_validation_all_dates.png`, `outputs/tables/p3_01_ecostress_passes.csv`, `outputs/tables/p2_07_stress_by_crop.csv`, `outputs/tables/p2_07_stress_by_lai.csv`, `outputs/tables/p2_04_tseb_by_crop.csv`, `data/ancillary/stations/arpae_giralda_20220719.csv` (escluso da Git), `outputs/tables/p2_04_tseb_by_lai.csv`, `outputs/tables/p2_04_sensitivity.csv`
+- `config/phase1_sharpening.yaml`, `scripts/p1_01_find_dates.py`, `outputs/tables/p1_coincident_dates.csv`, `outputs/tables/p3_03_validation_all_dates.csv`, `outputs/figures/p3_03_validation_all_dates.png`, `scripts/p1_02_download.py`, `scripts/p1_03_training_table.py`, `scripts/p1_04_models.py`, `scripts/p1_05_sharpen.py`, `scripts/p2_01_download_era5.py`, `scripts/p2_02_download_biophys_inputs.py`, `scripts/p2_03_biophysical.py`, `scripts/p2_04_tseb.py`, `scripts/p2_05_station_check.py`, `scripts/p2_06_download_cropmap.py`, `scripts/p2_07_water_stress.py`, `scripts/p3_01_ecostress_search.py`, `scripts/config_utils.py`, `scripts/run_chain.py`, `scripts/p3_02_compare_ecostress.py`, `scripts/p3_03_validation_summary.py`, `scripts/p4_01_climate_context.py`, `scripts/p4_02_drought_comparison.py`, `scripts/p4_03_wapor.py`, `outputs/tables/p4_01_climate_context.csv`, `outputs/tables/p1_coincident_dates.csv`, `outputs/tables/p3_03_validation_all_dates.csv`, `outputs/figures/p3_03_validation_all_dates.png`, `outputs/tables/p3_01_ecostress_passes.csv`, `outputs/tables/p2_07_stress_by_crop.csv`, `outputs/tables/p2_07_stress_by_lai.csv`, `outputs/tables/p2_04_tseb_by_crop.csv`, `data/ancillary/stations/arpae_giralda_20220719.csv` (escluso da Git), `outputs/tables/p2_04_tseb_by_lai.csv`, `outputs/tables/p2_04_sensitivity.csv`
 - `GUIDA_PERSONALE.md` (locale, esclusa da Git): spiegazioni, codice commentato, domande da colloquio. Va aggiornata a ogni step.
 
 ## Criticità aperte
 
-- **Gradiente costiero dell'anomalia 2022 — confermato da 3 prove indipendenti**: rapporto ET entroterra/costa 0,76 nel 2022 (tutte le date < 0,85) contro circa 1,00 negli altri anni; presente con entrambe le varianti dell'altezza; presente nel CWSI contestuale, che non usa Ta (da −0,06 sulla costa a +0,08 a 6–8 km). Resta da escludere una differenza di Ta costa–entroterra solo nel 2022 (controllo ERA5). Interpretazioni da verificare: falda vicino alle lagune; gestione delle prese irrigue dei consorzi.
+- **WaPOR vede un calo 2022 molto minore**: −6% (contro 2023–2025) / −9% (contro tutti gli anni) contro il nostro −39%; stesso segno, geografia in parte concorde (r 0,47 a 300 m). Ipotesi: correzioni Ta diverse tra anni (2022 circa +1,3 K contro 1,9–2,5 K) → test --ta-fisso 2; appiattimento di WaPOR; 5 date contro serie continua. Controllo indipendente: LAI.
+
+- **Gradiente costiero dell'anomalia 2022 — confermato da 3 prove indipendenti**: rapporto ET entroterra/costa 0,76 nel 2022 (tutte le date < 0,85) contro circa 1,00 negli altri anni; presente con entrambe le varianti dell'altezza; presente nel CWSI contestuale, che non usa Ta (da −0,06 sulla costa a +0,08 a 6–8 km). Controllo ERA5: differenza di Ta costa–entroterra circa +0,14 K in tutti gli anni, nessuna particolarità nel 2022, ma ERA5 (9 km) non risolve 5 km: controllo debole. Interpretazioni da verificare: falda vicino alle lagune; gestione delle prese irrigue dei consorzi.
 - La stazione GIRALDA ha buchi isolati di un'ora: ora riempiti per interpolazione (p2_05).
 
 - ~~Validazione a livello di campo su un giorno solo~~: risolto, 10 date Landsat 2019–2025 (r mediano 0,86). ECOSTRESS 2022 sul Delta è sfocato: va bene solo a scala di qualche centinaio di metri. L'ESI di ECOSTRESS (PT-JPL) non è confrontabile con il CWSI termico di TSEB.

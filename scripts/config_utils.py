@@ -86,6 +86,8 @@ def load_config(verbose=True):
     parser.add_argument("--date", help="data da elaborare, formato AAAA-MM-GG")
     parser.add_argument("--altezza", choices=["coltura", "lai"], default=None,
                         help="altezza della chioma in TSEB: dalla mappa colturale o solo dal LAI")
+    parser.add_argument("--ta-fisso", type=float, default=None,
+                        help="correzione dell'aria uguale per tutte le date (K), per test di sensibilita'")
     args, _ = parser.parse_known_args()
 
     cfg = yaml.safe_load(CONFIG_FILE.read_text(encoding="utf-8"))
@@ -129,6 +131,10 @@ def load_config(verbose=True):
     source = args.altezza or cfg["tseb"].get("height_source", "coltura")
     cfg["tseb"]["height_source"] = source
     cfg["tseb"]["run_suffix"] = "" if source == "coltura" else "_hlai"
+    # Test di sensibilita': stessa correzione dell'aria per tutte le date (file con suffisso _taX)
+    if args.ta_fisso is not None:
+        cfg["tseb"]["ta_offset_K"] = args.ta_fisso
+        cfg["tseb"]["run_suffix"] += f"_ta{args.ta_fisso:g}".replace(".", "p")
 
     for key in ("tables", "figures", "summaries", "processed", "raw"):
         (PROJECT_ROOT / cfg["paths"][key]).mkdir(parents=True, exist_ok=True)

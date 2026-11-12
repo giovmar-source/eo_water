@@ -1,0 +1,65 @@
+TSEB-PT - po_delta_porto_tolle - 2023-08-23 09:49 UTC - altezza della chioma: lai
+Griglia: 804 x 815 pixel a 20 m
+Zenit solare medio: 39.0 gradi
+Meteo medio sull'AOI all'ora del passaggio:
+  Ta 30.4 C | ea 24.6 hPa | vento 1.4 m/s | p 1015 hPa
+  SW 754 W/m2 | LW 396 W/m2 | SW giornaliera 22.0 MJ/m2
+  correzione Ta applicata: +2.0 K (dal file di configurazione)
+Frazione verde f_g: mediana 0.96, pixel con f_g < 0,3: 16.4%
+Mappa colturale: esclusi 17.9% dei pixel (classi [0, 100, 700, 800]: nessun dato, edificato, acqua, zone umide)
+
+Caso principale (LAI SNAP):
+  [SNAP] pixel validi: 454,068 su 655,260 (69.3%)
+  [SNAP] pixel senza soluzione (flag >= 252): 0
+
+Sensibilita' (LAI BIOPAR):
+  [BIOPAR] pixel validi: 454,048 su 655,260 (69.3%)
+  [BIOPAR] pixel senza soluzione (flag >= 252): 0
+
+Sensibilita' (30.000 pixel a caso): ET mediana (mm/g) per classe di LAI
+                                                    LAI -0.001-0.5  LAI 0.5-1  LAI 1-2  LAI 2-3  LAI 3-8  LE=0 su LAI>3 (%)
+variante                               dTa_extra_K                                                                         
+altezza da LAI, quote fisse, senza f_g -1                     2.09       2.99     4.10     4.51     3.29                2.5
+                                        0                     2.22       3.14     4.28     4.90     4.13                0.7
+                                        1                     2.35       3.28     4.44     5.17     4.84                0.3
+altezza lai, senza f_g                 -1                     2.10       3.00     4.12     4.60     3.80                0.6
+                                        0                     2.23       3.15     4.30     4.95     4.56                0.1
+                                        1                     2.35       3.29     4.45     5.19     5.17                0.0
+altezza lai, con f_g                   -1                     1.87       2.96     4.03     4.49     3.89                0.6
+                                        0                     2.00       3.11     4.20     4.78     4.57                0.1
+                                        1                     2.13       3.25     4.36     4.99     5.10                0.0
+
+GeoTIFF salvati in data\processed\p1_20230823/tseb_*_hlai_ta2.tif
+
+Controlli:
+  chiusura Rn - G - H - LE: max |residuo| 9.08e-05 W/m2 (TSEB chiude il bilancio per costruzione)
+  flag di TSEB (0 = soluzione con chioma al potenziale; 3 = alpha ridotto e evaporazione del suolo azzerata; 5 = LE totale azzerato, H = Rn - G): 0: 85.9%, 3: 14.1%, 5: 0.0%
+
+Mediane per coltura (EUCROPMAP 2022, classi > 50 ha):
+                                             ettari   LAI   Tr_C       H      LE    LE_C    LE_S   f_g  ET_mm  ET_p10  ET_p90  LE0_pct
+coltura                                                                                                                               
+Frumento tenero                             5495.44  0.87  39.39  104.70  268.77  171.76  107.70  0.94   3.21    1.85    4.85     0.02
+Mais                                        5043.60  0.69  40.74  108.05  254.00  143.36  112.01  0.92   3.03    1.65    5.10     0.00
+Soia                                        2215.76  0.39  43.18  111.99  195.07   52.35  131.44  0.74   2.32    1.73    4.54     0.00
+Foraggere                                   1690.68  0.45  43.92  115.52  193.47   81.69  112.74  0.85   2.31    1.70    4.23     0.00
+Prati                                        990.36  0.65  41.21   91.78  250.58  141.26  105.91  0.97   2.99    1.92    4.63     0.00
+Bosco e arbusti (incl. colture permanenti)   981.16  2.40  35.61   58.59  396.90  335.49   68.31  0.93   4.74    3.69    5.60     0.00
+Girasole                                     609.24  0.43  42.40  104.10  206.50   60.18  129.30  0.85   2.46    1.73    4.79     0.45
+altro                                        470.04  1.01  35.96   47.14  334.38  163.28  167.46  0.86   3.97    2.85    4.64     0.00
+Legumi secchi                                337.04  0.32  44.90  118.06  168.45   21.88  138.10  0.48   2.01    1.67    4.70     0.00
+Frumento duro                                168.16  1.28  37.75  118.90  294.27  215.93   87.27  0.94   3.52    1.76    4.59     0.00
+Barbabietola da zucchero                      58.20  0.18  44.87  109.92  173.86    0.61  165.61  0.02   2.07    1.94    4.61     0.00
+
+Mediane per classe di LAI:
+                pixel   Tr_C      Rn       H      LE    EF  ET_mm  ET_p10  ET_p90  ET_biopar_mm
+classe_LAI                                                                                     
+(-0.001, 0.5]  191863  44.93  417.30  121.00  167.09  0.58   1.99    1.61    2.52          2.08
+(0.5, 1.0]      72254  40.67  453.41   87.31  260.48  0.75   3.11    2.39    3.83          3.10
+(1.0, 2.0]      74377  36.72  489.00   59.53  350.78  0.85   4.18    3.52    4.73          4.16
+(2.0, 3.0]      42017  35.51  508.91   61.94  400.25  0.87   4.77    4.20    5.28          4.70
+(3.0, 4.0]      23598  35.16  516.66   86.02  407.55  0.83   4.87    3.79    5.66          4.71
+(4.0, 8.0]      49959  35.18  520.01  137.88  369.73  0.73   4.42    3.09    5.78          4.36
+
+ET giornaliera AOI: mediana 3.02 mm (p5 1.62, p95 5.20)
+Sensibilita' al LAI (BIOPAR - SNAP): mediana +0.03 mm/g, p5 -0.55, p95 +0.25
+Figura: outputs\20230823\figures\p2_04_tseb_hlai_ta2.png

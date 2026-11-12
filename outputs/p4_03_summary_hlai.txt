@@ -1,0 +1,34 @@
+WaPOR L1 AETI, decadi 6-8, anni 2018-2025
+  2018: 9 decadi
+  2019: 9 decadi
+  2020: 9 decadi
+  2021: 9 decadi
+  2022: 9 decadi
+  2023: 9 decadi
+  2024: 9 decadi
+  2025: 9 decadi
+
+ET estiva WaPOR (giugno-agosto), media dell'area di analisi:
+ anno  decadi  giorni  ET_estiva_mm  ET_media_mm_giorno
+ 2018       9      92    423.450012                4.60
+ 2019       9      92    406.190002                4.42
+ 2020       9      92    401.489990                4.36
+ 2021       9      92    386.709991                4.20
+ 2022       9      92    352.760010                3.83
+ 2023       9      92    357.049988                3.88
+ 2024       9      92    378.920013                4.12
+ 2025       9      92    374.829987                4.07
+
+Anomalia 2022 WaPOR: contro [2023, 2024, 2025] -6%, contro tutti gli altri anni -9%
+
+Anomalia 2022 pixel per pixel a 300 m (2765 pixel): nostra mediana -39%, WaPOR -9%, r 0.47, rho 0.47
+
+Anomalia 2022 per distanza dal mare (mediane a 300 m):
+               pixel  nostra_pct  wapor_pct
+fascia_km                                  
+(-0.001, 2.0]    776  -30.600000       -4.7
+(2.0, 4.0]       935  -37.200001       -9.8
+(4.0, 6.0]       836  -46.900002      -10.7
+(6.0, 8.0]       217  -45.900002       -2.9
+(8.0, 10.0]        1  -41.400002       11.3
+Figura: outputs/figures/p4_03_wapor_hlai.png

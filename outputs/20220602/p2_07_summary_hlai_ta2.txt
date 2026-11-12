@@ -1,0 +1,35 @@
+Pixel vegetati: 363,810 (14,552 ha) [LAI >= 0.5, f_g >= 0.5, niente acqua/edificato]
+
+Riferimenti caldo/freddo per classe di LAI (indice contestuale):
+  LAI  pixel  T_wet_C  T_dry_C
+0.5-1  86358    31.50    40.09
+  1-2 142778    28.74    38.17
+  2-3  82627    27.95    34.00
+  3-4  34920    27.72    33.03
+  4-8  17078    28.15    32.88
+
+Accordo sul RANGO (Spearman) tra CWSI TSEB e contestuale: 0.65
+
+Per classe di LAI:
+             ettari  CWSI_TSEB_mediana  TSEB_stress>0.3_%  CWSI_ctx_mediana  ctx_stress>0.3_%  Spearman
+classe_LAI                                                                                             
+[0.5, 1.0)  3454.32               0.00              20.34              0.58             85.40      0.55
+[1.0, 2.0)  5711.12               0.16              42.51              0.47             73.34      0.81
+[2.0, 3.0)  3305.08               0.32              58.75              0.53             82.90      0.84
+[3.0, 4.0)  1396.80               0.63              86.18              0.59             83.05      0.91
+[4.0, 8.0)   683.12               0.87              98.14              0.58             82.08      0.89
+
+Per coltura (classi > 50 ha):
+                                             ettari  CWSI_TSEB_mediana  TSEB_stress>0.3_%  CWSI_ctx_mediana  ctx_stress>0.3_%  Spearman
+coltura                                                                                                                                
+Frumento tenero                             5294.68               0.16              37.69              0.42             67.48      0.67
+Mais                                        4242.24               0.24              47.53              0.57             88.12      0.61
+Foraggere                                   1429.88               0.63              84.55              0.69             95.34      0.65
+Bosco e arbusti (incl. colture permanenti)   969.88               0.32              53.40              0.47             71.36      0.70
+Prati                                        841.20               0.32              53.11              0.61             89.17      0.64
+Soia                                         518.60               0.00              18.21              0.57             90.00      0.45
+Girasole                                     390.88               0.32              51.66              0.61             88.87      0.62
+altro                                        313.60               0.00              27.24              0.38             63.66      0.73
+Legumi secchi                                307.24               0.79              88.74              0.59             94.62      0.48
+Frumento duro                                142.68               0.00              32.44              0.46             69.02      0.64
+Figura: outputs/20220602/figures/p2_07_water_stress_hlai_ta2.png

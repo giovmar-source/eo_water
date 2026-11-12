@@ -210,6 +210,12 @@ drought:
   distance_bins_km: [0, 2, 4, 6, 8, 10, 15, 25]
   cropmap_wide_file: eucropmap_2022_training_aoi.tif   # area ampia: serve per la distanza dal mare
 
+# Confronto con WaPOR L1 (FAO, 300 m, decadale) - p4_03
+wapor:
+  years: [2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025]
+  months: [6, 8]            # giugno-agosto, 9 decadi per anno
+  margin_deg: 0.02          # piccolo margine attorno all'area di analisi
+
 # Stazioni a terra per verificare il meteo ERA5-Land
 stations:
   file: data/ancillary/stations/arpae_giralda_{date}.csv

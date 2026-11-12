@@ -101,7 +101,8 @@ def main():
     fig_dir.mkdir(parents=True, exist_ok=True)
     years = [dc["target_year"]] + dc["reference_years"]
     log(f"Confronto siccita': {dc['target_year']} contro {dc['reference_years']} "
-        f"(altezza della chioma: {cfg['tseb']['height_source']})")
+        f"(altezza della chioma: {cfg['tseb']['height_source']}; correzione aria: "
+        f"{cfg['tseb'].get('ta_offset_K')})")
 
     # --- Griglia comune e maschere dalla mappa colturale ---
     grid = None
@@ -123,7 +124,12 @@ def main():
             stacks["ET"][date] = et.values
             stacks["EF"][date] = read(proc / f"tseb_ef{sfx}.tif", grid).values
             stacks["CWSI"][date] = read(proc / f"cwsi_tseb{sfx}.tif", grid).values
-            rows.append({"data": date, "anno": year, "correzione_Ta_K": off})
+            lai_f = proc / cfg["tseb"]["lai_file"]
+            stacks.setdefault("LAI", {})[date] = (read(lai_f, grid).values if lai_f.exists()
+                                                  else np.full(grid.shape, np.nan))
+            fixed = str(cfg["tseb"].get("ta_offset_K", "auto")).lower() != "auto"
+            rows.append({"data": date, "anno": year,
+                         "correzione_Ta_K": float(cfg["tseb"]["ta_offset_K"]) if fixed else off})
 
     crop = read(PROJECT_ROOT / cfg["paths"]["aux"] / cfg["tseb"]["cropmap_file"], grid).values
     land = ~np.isin(crop, cfg["tseb"]["exclude_classes"]) & np.isfinite(crop)
@@ -137,6 +143,7 @@ def main():
         r.update({"frazione_valida": np.isfinite(et[land]).mean(),
                   "ET_media_mm": np.nanmean(et[land]), "ET_mediana_mm": np.nanmedian(et[land]),
                   "EF_media": np.nanmean(ef[land]),
+                  "LAI_medio": np.nanmean(stacks["LAI"][d][land]),   # non dipende dall'aria ne' da TSEB
                   "CWSI_medio_vegetazione": np.nanmean(cw),
                   "quota_vegetazione_stressata": np.nanmean(cw[np.isfinite(cw)] > 0.3)})
     by_date = pd.DataFrame(rows).round(3)
@@ -156,7 +163,7 @@ def main():
         return mean, len(arrs)
 
     maps, year_rows = {}, []
-    for var in ("ET", "EF", "CWSI"):
+    for var in ("ET", "EF", "CWSI", "LAI"):
         per_year = {}
         for y in years:
             per_year[y], n = yearly_mean(var, y)
@@ -182,6 +189,19 @@ def main():
         f"({anom_pct:+.0f}%), EF {np.nanmean(maps['EF']['anom'][ok]):+.3f}")
     log(f"Ordine di grandezza sull'estate ({dc['season_days']} giorni): {vol:+.1f} milioni di m3 "
         "(stima grezza: 5 fotografie per estate, non una serie continua)")
+
+    # Mappe salvate come GeoTIFF: servono al confronto con WaPOR (p4_03) e a chi vuole guardarle in un GIS
+    out_maps = PROJECT_ROOT / "data" / "processed" / "drought"
+    out_maps.mkdir(parents=True, exist_ok=True)
+    to_save = {"et_2022": maps["ET"]["target"], "et_rif": maps["ET"]["ref"],
+               "et_anomalia": maps["ET"]["anom"], "ef_anomalia": maps["EF"]["anom"],
+               "cwsi_anomalia": maps["CWSI"]["anom"], "distanza_mare_km": dist_km}
+    for name, arr in to_save.items():
+        da = grid.copy(data=np.where(land | (name == "distanza_mare_km"), arr, np.nan).astype("float32"))
+        da.attrs, da.encoding, da.name = {}, {}, name
+        da.rio.write_nodata(np.nan, encoded=False).rio.to_raster(out_maps / f"{name}{sfx}.tif",
+                                                                  compress="deflate")
+    log(f"Mappe GeoTIFF: data/processed/drought/*{sfx}.tif")
 
     # --- 3. Anomalia per distanza dal mare ---
     bins = dc["distance_bins_km"]
